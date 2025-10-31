@@ -1,3 +1,6 @@
+const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
+
 function formatDate(date) {
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 }
@@ -26,6 +29,21 @@ function getWeeklyEvents(date) {
   }, {});
 }
 
-function test() {
-  console.log(JSON.stringify(getWeeklyEvents(getCurrentWeekMonday(new Date('2025-10-31'))), null, 2))
+async function getWeeklyGithubActivities() {
+  const response = await UrlFetchApp.fetch(`https://api.github.com/users/${githubUsername}/events`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'X-Github-API-Version': '2022-11-28',
+      Authorization: `Bearer ${githubToken}`,
+    }
+  });
+
+  console.log(response);
+}
+
+async function test() {
+  console.log(JSON.stringify(getWeeklyEvents(getCurrentWeekMonday(new Date('2025-10-31'))), null, 2));
+
+  await getWeeklyGithubActivities();
 }
