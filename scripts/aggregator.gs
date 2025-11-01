@@ -29,8 +29,8 @@ function getWeeklyEvents(date) {
   }, {});
 }
 
-async function getWeeklyGithubActivities() {
-  const response = await UrlFetchApp.fetch(`https://api.github.com/users/${githubUsername}/events`, {
+function getWeeklyGithubActivities() {
+  const response = UrlFetchApp.fetch(`https://api.github.com/users/${githubUsername}/events`, {
     method: 'GET',
     headers: {
       Accept: 'application/vnd.github+json',
@@ -39,7 +39,7 @@ async function getWeeklyGithubActivities() {
     }
   });
 
-  console.log(response);
+  return JSON.parse(response.getBlob().getDataAsString());
 }
 
 async function test() {
