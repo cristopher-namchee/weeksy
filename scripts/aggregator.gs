@@ -42,8 +42,8 @@ function getWeeklyGithubActivities() {
   return JSON.parse(response.getBlob().getDataAsString());
 }
 
-async function test() {
+function test() {
   console.log(JSON.stringify(getWeeklyEvents(getCurrentWeekMonday(new Date('2025-10-31'))), null, 2));
 
-  await getWeeklyGithubActivities();
+  getWeeklyGithubActivities();
 }
