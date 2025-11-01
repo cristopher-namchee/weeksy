@@ -7,3 +7,6 @@
 - [ ] Summarize the activity of the week (Cloudflare Workers)
 - [ ] Register what I read this week (???)
 
+## License
+
+This project is licensed under the [Unlicense](./LICENSE)
