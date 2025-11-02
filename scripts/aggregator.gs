@@ -1,6 +1,5 @@
 const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
-const githubRepositories = PropertiesService.getScriptProperties().getProperty('GITHUB_REPOSITORIES').split(',');
 
 function formatDate(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
