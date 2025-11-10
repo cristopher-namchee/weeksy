@@ -30,7 +30,7 @@ function getWeeklyEvents(date) {
 }
 
 function getWeeklyPullRequest(repo, since) {
-  const query = `is:pr author:${githubUsername} created:>${formatDate(since)}`;
+  const query = `is:pr author:${githubUsername} created:>=${formatDate(since)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -41,69 +41,17 @@ function getWeeklyPullRequest(repo, since) {
     }
   })
 
-  const body = JSON.stringify(response.getBlob().getDataAsString());
+  const body = response.getBlob().getDataAsString();
 
-  return body;
-}
-
-function getWeeklyGithubActivities(since) {
-  const query = `
-    query($user: String!, $since: DateTime!) {
-      user(login: $user) {
-        pullRequests(
-          first: 100
-          orderBy: { field: CREATED_AT, direction: DESC }
-          filterBy: { createdAfter: $since }
-        ) {
-          nodes {
-            title
-            url
-            createdAt
-            repository { nameWithOwner }
-          }
-        }
-        contributionsCollection(from: $since) {
-          pullRequestReviewContributions(first: 100) {
-            nodes {
-              occurredAt
-              pullRequest {
-                title
-                url
-                repository { nameWithOwner }
-              }
-            }
-          }
-        }
-      } 
-    }
-  `;
-
-  const res = UrlFetchApp.fetch('https://api.github.com/graphql', {
-    method: 'post',
-    headers: {
-      Authorization: `Bearer ${githubToken}`,
-      'Content-Type': 'application/json',
-    },
-    payload: JSON.stringify({
-      query,
-      variables: {
-        user: githubUsername,
-        since,
-      },
-    }),
-    muteHttpExceptions: true,
-  });
-
-  Logger.log(res.getContentText());
+  return JSON.parse(body);
 }
 
 function test() {
   const monday = getCurrentWeekMonday(new Date('2025-10-31'));
 
-  console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
+  // console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 
   for (const repo of githubRepositories) {
     console.log(getWeeklyPullRequest(repo, monday));
   }
-
 }
