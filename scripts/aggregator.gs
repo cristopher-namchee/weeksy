@@ -2,7 +2,10 @@ const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_
 const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
 
 function formatDate(date) {
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const actualDate = ('0' + date.getDate()).slice(-2);
+
+  return `${date.getFullYear()}-${month}-${actualDate}`;
 }
 
 function getCurrentWeekMonday(date) {
@@ -29,8 +32,8 @@ function getWeeklyEvents(date) {
   }, {});
 }
 
-function getWeeklyPullRequest(repo, since) {
-  const query = `is:pr author:${githubUsername} created:>=${formatDate(since)}`;
+function getWeeklyPullRequest(from, to) {
+  const query = `is:pr author:${githubUsername} created:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -46,12 +49,15 @@ function getWeeklyPullRequest(repo, since) {
   return JSON.parse(body);
 }
 
+function getWeeklyReviews(since) {
+
+}
+
 function test() {
-  const monday = getCurrentWeekMonday(new Date('2025-10-31'));
+  const today = new Date('2025-11-01');
+  const monday = getCurrentWeekMonday(today);
 
   // console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 
-  for (const repo of githubRepositories) {
-    console.log(getWeeklyPullRequest(repo, monday));
-  }
+  console.log(getWeeklyPullRequest(monday, today));
 }
