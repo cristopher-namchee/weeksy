@@ -10,8 +10,8 @@ function formatDate(date) {
 
 function getCurrentWeekMonday(date) {
   const monday = new Date(date);
-  monday.setDate(monday.getDate() - 4);
-
+  
+  monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
   return monday;
 }
 
