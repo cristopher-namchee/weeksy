@@ -49,8 +49,21 @@ function getWeeklyPullRequest(from, to) {
   return JSON.parse(body);
 }
 
-function getWeeklyReviews(since) {
+function getWeeklyReviews(from, to) {
+  const query = `is:pr commenter:${githubUsername} created:${formatDate(from)}..${formatDate(to)}`;
 
+  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
+  const response = UrlFetchApp.fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${githubToken}`,
+      Accept: 'application/vnd.github+json'
+    }
+  })
+
+  const body = response.getBlob().getDataAsString();
+
+  return JSON.parse(body);
 }
 
 function test() {
@@ -59,5 +72,5 @@ function test() {
 
   // console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 
-  console.log(getWeeklyPullRequest(monday, today));
+  console.log(getWeeklyReviews(monday, today));
 }
