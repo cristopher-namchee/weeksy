@@ -1,6 +1,11 @@
 const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
 
+const FormattingDictionary = {
+  'glchat': 'GLChat',
+  'glchat-sdk': 'GLChat SDK',
+};
+
 function formatDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
   const actualDate = ('0' + date.getDate()).slice(-2);
