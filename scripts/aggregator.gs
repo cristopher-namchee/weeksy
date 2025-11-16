@@ -1,11 +1,6 @@
 const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
 
-const FormattingDictionary = {
-  'glchat': 'GLChat',
-  'glchat-sdk': 'GLChat SDK',
-};
-
 function formatDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
   const actualDate = ('0' + date.getDate()).slice(-2);
@@ -18,6 +13,24 @@ function getCurrentWeekMonday(date) {
   
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
   return monday;
+}
+
+function getLatestReportLink(date) {
+  const sunday = new Date(date);
+  sunday.setDate(sunday.getDate() - 1);
+
+  const saturday = new Date(date);
+  saturday.setDate(saturday.getDate() + 5);
+
+  const documentName = `[Weekly Report: Cristopher] ${sunday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+  const files = DriveApp.getFilesByName(documentName);
+
+  while (files.hasNext()) {
+    return files.next().getId();
+  }
+
+  throw new Error('Report file not found');
 }
 
 function getWeeklyEvents(date) {
@@ -72,10 +85,12 @@ function getWeeklyReviews(from, to) {
 }
 
 function test() {
-  const today = new Date('2025-11-01');
+  const today = new Date('2025-11-21');
   const monday = getCurrentWeekMonday(today);
 
   // console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 
-  console.log(getWeeklyReviews(monday, today));
+  const id = getLatestReportLink(monday);
+
+  const document = DocumentApp.openById(id);
 }
