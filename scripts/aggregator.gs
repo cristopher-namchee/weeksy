@@ -87,8 +87,12 @@ function getWeeklyReviews(from, to) {
 function test() {
   const today = new Date('2025-11-21');
   const monday = getCurrentWeekMonday(today);
+  const friday = new Date(monday);
+  friday.setDate(friday.getDate() + 4);
 
-  // console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
+  const events = getWeeklyEvents(monday);
+  const pullRequest = getWeeklyPullRequest(monday, friday);
+  const review = getWeeklyReviews(monday, friday);
 
   const id = getLatestReportLink(monday);
 
