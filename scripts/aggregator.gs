@@ -87,12 +87,37 @@ function getWeeklyReviews(from, to) {
 function findSection(text, document) {
   const body = document.getBody();
   const search = body.findText(text);
-
-  let targetIndex = -1;
-
-  for (let idx = 0; idx < body.getNumChildren(); idx++) {
-    const child = body.getChild(idx);
+  if (!search) {
+    console.log('cannot find text');
+    return null;
   }
+
+  const element = search.getElement().getParent().asParagraph();
+  if (element.getType() !== DocumentApp.ElementType.PARAGRAPH) {
+    return null;
+  }
+
+  const headingStyle = element.getHeading();
+  if (headingStyle !== DocumentApp.ParagraphHeading.HEADING2) {
+    return null;
+  }
+
+  const parent = element.getParent();
+  const index = parent.getChildIndex(element);
+
+  const newParagraph = parent.insertParagraph(index + 1, 'foo bar');
+  const range = newParagraph.findText('foo bar');
+
+  if (range) {
+    const text = range.getElement().asText();
+
+    text.setBold(false);
+    text.setFontFamily('Arial');
+  }
+
+  document.saveAndClose();
+
+  return true;
 }
 
 function test() {
@@ -101,11 +126,12 @@ function test() {
   const friday = new Date(monday);
   friday.setDate(friday.getDate() + 4);
 
-  const events = getWeeklyEvents(monday);
-  const pullRequest = getWeeklyPullRequest(monday, friday);
-  const review = getWeeklyReviews(monday, friday);
+  // const events = getWeeklyEvents(monday);
+  // const pullRequest = getWeeklyPullRequest(monday, friday);
+  // const review = getWeeklyReviews(monday, friday);
 
   const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(id);
+  console.log(findSection('Issues', document));
 }
