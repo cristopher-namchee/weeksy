@@ -84,6 +84,17 @@ function getWeeklyReviews(from, to) {
   return JSON.parse(body);
 }
 
+function findSection(text, document) {
+  const body = document.getBody();
+  const search = body.findText(text);
+
+  let targetIndex = -1;
+
+  for (let idx = 0; idx < body.getNumChildren(); idx++) {
+    const child = body.getChild(idx);
+  }
+}
+
 function test() {
   const today = new Date('2025-11-21');
   const monday = getCurrentWeekMonday(today);
