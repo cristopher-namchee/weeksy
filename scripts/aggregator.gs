@@ -84,29 +84,32 @@ function getWeeklyReviews(from, to) {
   return JSON.parse(body);
 }
 
-function findSection(text, document) {
+function findSection(search, element, document) {
   const body = document.getBody();
-  const search = body.findText(text);
-  if (!search) {
+  const headingText = body.findText(search);
+  if (!headingText) {
     console.log('cannot find text');
     return null;
   }
 
-  const element = search.getElement().getParent().asParagraph();
-  if (element.getType() !== DocumentApp.ElementType.PARAGRAPH) {
+  const section = headingText.getElement().getParent().asParagraph();
+  if (section.getType() !== DocumentApp.ElementType.PARAGRAPH) {
     return null;
   }
 
-  const headingStyle = element.getHeading();
+  const headingStyle = section.getHeading();
   if (headingStyle !== DocumentApp.ParagraphHeading.HEADING2) {
     return null;
   }
 
-  const parent = element.getParent();
-  const index = parent.getChildIndex(element);
+  const parent = section.getParent();
+  const index = parent.getChildIndex(section);
 
-  const newParagraph = parent.insertParagraph(index + 1, 'foo bar');
-  const range = newParagraph.findText('foo bar');
+  const placeholder = parent.getChild(index + 1);
+  parent.removeChild(placeholder);
+
+  const newParagraph = parent.insertParagraph(index + 1, element);
+  const range = newParagraph.findText(element);
 
   if (range) {
     const text = range.getElement().asText();
@@ -133,5 +136,5 @@ function test() {
   const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(id);
-  console.log(findSection('Issues', document));
+  console.log(findSection('Issues', 'Test text', document));
 }
