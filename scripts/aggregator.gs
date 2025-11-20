@@ -50,6 +50,22 @@ function getWeeklyEvents(date) {
   }, {});
 }
 
+function deduplicateEvents(events) {
+  const table = new Set();
+  const deduplicatedEvents = [];
+
+  for (const eventOfDay of Object.values(events)) {
+    for (const { name } of eventOfDay) {
+      if (!table.has(name)) {
+        deduplicatedEvents.push(name);
+        table.add(name);
+      }
+    }
+  }
+
+  return deduplicatedEvents;
+}
+
 function getWeeklyPullRequest(from, to) {
   const query = `is:pr author:${githubUsername} created:${formatDate(from)}..${formatDate(to)}`;
 
@@ -84,11 +100,10 @@ function getWeeklyReviews(from, to) {
   return JSON.parse(body);
 }
 
-function findSection(search, element, document) {
+function fillSection(search, element, document) {
   const body = document.getBody();
   const headingText = body.findText(search);
   if (!headingText) {
-    console.log('cannot find text');
     return null;
   }
 
@@ -119,8 +134,6 @@ function findSection(search, element, document) {
   }
 
   document.saveAndClose();
-
-  return true;
 }
 
 function test() {
@@ -129,12 +142,13 @@ function test() {
   const friday = new Date(monday);
   friday.setDate(friday.getDate() + 4);
 
-  // const events = getWeeklyEvents(monday);
+  const events = getWeeklyEvents(monday);
+  console.log(deduplicateEvents(events));
   // const pullRequest = getWeeklyPullRequest(monday, friday);
   // const review = getWeeklyReviews(monday, friday);
 
   const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(id);
-  console.log(findSection('Issues', 'Test text', document));
+  console.log(fillSection('Meetings/Events/Training/Conferences', 'Test text', document));
 }
