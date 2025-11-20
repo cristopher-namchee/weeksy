@@ -34,7 +34,7 @@ function getLatestReportLink(date) {
 }
 
 function getWeeklyEvents(date) {
-  return [...Array(5).keys()].reduce((acc, curr) => {
+  const events = [...Array(5).keys()].reduce((acc, curr) => {
     const targetDate = new Date(date);
     targetDate.setDate(targetDate.getDate() + curr);
 
@@ -48,9 +48,7 @@ function getWeeklyEvents(date) {
 
     return acc;
   }, {});
-}
 
-function deduplicateEvents(events) {
   const table = new Set();
   const deduplicatedEvents = [];
 
@@ -100,7 +98,24 @@ function getWeeklyReviews(from, to) {
   return JSON.parse(body);
 }
 
-function fillSection(search, element, document) {
+function fillWeeklyEvents(events, section, document) {
+  const parent = section.getParent();
+  const index = parent.getChildIndex(section);
+
+  const placeholder = parent.getChild(index + 1);
+  parent.removeChild(placeholder);
+
+  for (const event of events) {
+    const part = parent.insertListItem(index + 1, event);
+    part.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    part.setBold(false);
+    part.setFontFamily('Arial');
+  }
+
+  document.saveAndClose();
+}
+
+function findSection(search, document) {
   const body = document.getBody();
   const headingText = body.findText(search);
   if (!headingText) {
@@ -117,23 +132,7 @@ function fillSection(search, element, document) {
     return null;
   }
 
-  const parent = section.getParent();
-  const index = parent.getChildIndex(section);
-
-  const placeholder = parent.getChild(index + 1);
-  parent.removeChild(placeholder);
-
-  const newParagraph = parent.insertParagraph(index + 1, element);
-  const range = newParagraph.findText(element);
-
-  if (range) {
-    const text = range.getElement().asText();
-
-    text.setBold(false);
-    text.setFontFamily('Arial');
-  }
-
-  document.saveAndClose();
+  return section;
 }
 
 function test() {
@@ -143,12 +142,12 @@ function test() {
   friday.setDate(friday.getDate() + 4);
 
   const events = getWeeklyEvents(monday);
-  console.log(deduplicateEvents(events));
   // const pullRequest = getWeeklyPullRequest(monday, friday);
   // const review = getWeeklyReviews(monday, friday);
 
   const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(id);
-  console.log(fillSection('Meetings/Events/Training/Conferences', 'Test text', document));
+
+  fillWeeklyEvents(events, findSection('Meetings/Events/Training/Conferences', document), document);
 }
