@@ -1,6 +1,14 @@
 const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
 
+const Heading = {
+  Issues: 'Issues',
+  Task: 'Accomplishments',
+  Events: 'Meetings/Events/Training/Conferences',
+  Todo: 'Next Actions',
+  Article: 'Technology, Business, Communication, Leadership, Management & Marketing',
+}
+
 function formatDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
   const actualDate = ('0' + date.getDate()).slice(-2);
@@ -98,6 +106,29 @@ function getWeeklyReviews(from, to) {
   return JSON.parse(body);
 }
 
+function cleanSection(section) {
+  const text = section.getText();
+
+  const parent = section.getParent();
+  const index = parent.getChildIndex(section);
+
+  const count = parent.getNumChildren();
+
+  for (let idx = index + 1; idx < count; idx++) {
+    const child = parent.getChild(idx);
+
+    if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      const heading = child.asParagraph().getHeading();
+
+      console.log(child.getText());
+
+      console.log(heading === DocumentApp.ParagraphHeading.HEADING2);
+    }
+
+    console.log(child.getType().toString(), child.getType() === DocumentApp.ParagraphHeading.HEADING2, child.getText());
+  }
+}
+
 function fillWeeklyEvents(events, section, document) {
   const parent = section.getParent();
   const index = parent.getChildIndex(section);
@@ -145,9 +176,12 @@ function test() {
   // const pullRequest = getWeeklyPullRequest(monday, friday);
   // const review = getWeeklyReviews(monday, friday);
 
-  const id = getLatestReportLink(monday);
+  // const id = getLatestReportLink(monday);
 
-  const document = DocumentApp.openById(id);
+  const document = DocumentApp.openById('1GwFkuKrosKRvclO0ERmMIk4tQlNWUIVdHwzBg4olplY');
 
-  fillWeeklyEvents(events, findSection('Meetings/Events/Training/Conferences', document), document);
+  const meetingSection = findSection('Issues', document);
+  cleanSection(meetingSection);
+
+  // fillWeeklyEvents(events, meetingSection, document);
 }
