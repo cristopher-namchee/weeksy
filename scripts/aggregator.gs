@@ -87,8 +87,14 @@ function getWeeklyPullRequest(from, to) {
   })
 
   const body = response.getBlob().getDataAsString();
+  const pullRequests = JSON.parse(body);
 
-  return JSON.parse(body);
+  return pullRequests.items.map(pr => ({
+    id: pr.id,
+    url: pr.html_url,
+    title: pr.title,
+    draft: pr.draft,
+  }));
 }
 
 function getWeeklyReviews(from, to) {
@@ -180,7 +186,8 @@ function test() {
   friday.setDate(friday.getDate() + 4);
 
   const events = getWeeklyEvents(monday);
-  // const pullRequest = getWeeklyPullRequest(monday, friday);
+  const pullRequest = getWeeklyPullRequest(monday, friday);
+  console.log(pullRequest);
   // const review = getWeeklyReviews(monday, friday);
 
   // const id = getLatestReportLink(monday);
