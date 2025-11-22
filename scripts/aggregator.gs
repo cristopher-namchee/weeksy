@@ -113,6 +113,7 @@ function cleanSection(section) {
   const index = parent.getChildIndex(section);
 
   const count = parent.getNumChildren();
+  const target = [];
 
   for (let idx = index + 1; idx < count; idx++) {
     const child = parent.getChild(idx);
@@ -120,12 +121,16 @@ function cleanSection(section) {
     if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
       const heading = child.asParagraph().getHeading();
 
-      console.log(child.getText());
-
-      console.log(heading === DocumentApp.ParagraphHeading.HEADING2);
+      if (heading === DocumentApp.ParagraphHeading.HEADING2 && child.getText() !== text) {
+        break;
+      }
     }
 
-    console.log(child.getType().toString(), child.getType() === DocumentApp.ParagraphHeading.HEADING2, child.getText());
+    target.push(child);
+  }
+
+  for (const t of target) {
+    parent.removeChild(t);
   }
 }
 
