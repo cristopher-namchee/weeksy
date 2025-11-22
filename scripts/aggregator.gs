@@ -1,5 +1,7 @@
-const githubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-const githubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
+const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+const GithubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
+
+const TestDocument = '1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo';
 
 const Heading = {
   Issues: 'Issues',
@@ -73,13 +75,13 @@ function getWeeklyEvents(date) {
 }
 
 function getWeeklyPullRequest(from, to) {
-  const query = `is:pr author:${githubUsername} created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:${GithubUsername} created:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${githubToken}`,
+      Authorization: `Bearer ${GithubToken}`,
       Accept: 'application/vnd.github+json'
     }
   })
@@ -90,13 +92,13 @@ function getWeeklyPullRequest(from, to) {
 }
 
 function getWeeklyReviews(from, to) {
-  const query = `is:pr commenter:${githubUsername} created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr commenter:${GithubUsername} created:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${githubToken}`,
+      Authorization: `Bearer ${GithubToken}`,
       Accept: 'application/vnd.github+json'
     }
   })
@@ -183,10 +185,10 @@ function test() {
 
   // const id = getLatestReportLink(monday);
 
-  const document = DocumentApp.openById('1GwFkuKrosKRvclO0ERmMIk4tQlNWUIVdHwzBg4olplY');
+  const document = DocumentApp.openById(TestDocument);
 
-  const meetingSection = findSection('Issues', document);
+  const meetingSection = findSection(Heading.Events, document);
   cleanSection(meetingSection);
 
-  // fillWeeklyEvents(events, meetingSection, document);
+  fillWeeklyEvents(events, meetingSection, document);
 }
