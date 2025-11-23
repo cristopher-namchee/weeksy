@@ -93,13 +93,13 @@ function getWeeklyIssues(from, to) {
   })
 
   const body = response.getBlob().getDataAsString();
-  const pullRequests = JSON.parse(body).items;
+  const issues = JSON.parse(body).items;
 
-  return pullRequests.map(pr => ({
+  return groupSearchItems(issues.map(pr => ({
     url: pr.html_url,
     repository: pr.repository_url,
     title: pr.title,
-  }));
+  })));
 }
 
 function getWeeklyPullRequest(from, to) {
@@ -117,11 +117,11 @@ function getWeeklyPullRequest(from, to) {
   const body = response.getBlob().getDataAsString();
   const pullRequests = JSON.parse(body).items;
 
-  return pullRequests.map(pr => ({
+  return groupSearchItems(pullRequests.map(pr => ({
     url: pr.html_url,
     repository: pr.repository_url,
     title: pr.title,
-  }));
+  })));
 }
 
 function getWeeklyReviews(from, to) {
@@ -139,11 +139,11 @@ function getWeeklyReviews(from, to) {
   const body = response.getBlob().getDataAsString();
   const reviews = JSON.parse(body).items;
 
-  return reviews.map(review => ({
+  return groupSearchItems(reviews.map(review => ({
     url: review.html_url,
     repository: review.repository_url,
     title: review.title,
-  }));
+  })));
 }
 
 function cleanSection(section) {
@@ -174,8 +174,8 @@ function cleanSection(section) {
   }
 }
 
-function groupPullRequest(pullRequests) {
-  return pullRequests.reduce((acc, curr) => {
+function groupSearchItems(items) {
+  return items.reduce((acc, curr) => {
     const label = Repository[curr.repository] ?? 'Others';
 
     if (!(label in acc)) {
@@ -188,89 +188,49 @@ function groupPullRequest(pullRequests) {
   }, {});
 }
 
+function createSection(title, items, parent, index) {
+  const section = parent.insertListItem(++index, title);
+  section.setGlyphType(DocumentApp.GlyphType.NUMBER);
+  section.setBold(false);
+  section.setFontFamily('Arial');
+
+  for (const [repo, group] of Object.entries(items)) {
+    const rootItem = parent.insertListItem(++index, repo);
+    rootItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    rootItem.setBold(false);
+    rootItem.setFontFamily('Arial');
+    rootItem.setNestingLevel(1);
+
+    for (const item of group) {
+      const el = parent.insertListItem(++index, item.title);
+      el.setGlyphType(DocumentApp.GlyphType.NUMBER);
+      el.setBold(false);
+      el.setFontFamily('Arial');
+      el.setNestingLevel(2);
+
+      const text = el.editAsText();
+
+      text.setLinkUrl(0, text.getText().length - 1, item.url);
+    }
+  }
+
+  return index;
+}
+
 function fillAccomplishments({ pullRequests, reviews, issues }, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
   if (Object.keys(issues).length > 0) {
-    const issueSection = parent.insertListItem(++index, 'Issue(s) Reported');
-    issueSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    issueSection.setBold(false);
-    issueSection.setFontFamily('Arial');
-
-    for (const [repo, pullRequests] of Object.entries(groupedAchivements)) {
-      const item = parent.insertListItem(++index, repo);
-      item.setGlyphType(DocumentApp.GlyphType.NUMBER);
-      item.setBold(false);
-      item.setFontFamily('Arial');
-      subList.setNestingLevel(1);
-
-      for (const pullRequest of pullRequests) {
-        const subList = parent.insertListItem(++index, pullRequest.title);
-        subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
-        subList.setBold(false);
-        subList.setFontFamily('Arial');
-        subList.setNestingLevel(2);
-
-        const text = subList.editAsText();
-
-        text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
-      }
-    }
+    index = createSection('Issue(s) Reported', issues, parent, index);
   }
 
   if (Object.keys(pullRequests).length > 0) {
-    const prSection = parent.insertListItem(++index, 'Pull Request(s) Created');
-    prSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    prSection.setBold(false);
-    prSection.setFontFamily('Arial');
-
-    for (const [repo, pullRequestGroup] of Object.entries(pullRequests)) {
-      const item = parent.insertListItem(++index, repo);
-      item.setGlyphType(DocumentApp.GlyphType.NUMBER);
-      item.setBold(false);
-      item.setFontFamily('Arial');
-      subList.setNestingLevel(1);
-
-      for (const pullRequest of pullRequestGroup) {
-        const subList = parent.insertListItem(++index, pullRequest.title);
-        subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
-        subList.setBold(false);
-        subList.setFontFamily('Arial');
-        subList.setNestingLevel(2);
-
-        const text = subList.editAsText();
-
-        text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
-      }
-    }
+    index = createSection('Pull Request(s) Created', pullRequests, parent, index);
   }
 
   if (Object.keys(reviews).length > 0) {
-    const reviewSection = parent.insertListItem(++index, 'Pull Request Reviews');
-    reviewSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    reviewSection.setBold(false);
-    reviewSection.setFontFamily('Arial');
-
-    for (const [repo, reviewGroup] of Object.entries(reviews)) {
-      const item = parent.insertListItem(++index, review.title);
-      item.setGlyphType(DocumentApp.GlyphType.NUMBER);
-      item.setBold(false);
-      item.setFontFamily('Arial');
-      item.setNestingLevel(1);
-
-      for (const review of reviewGroup) {
-        const subList = parent.insertListItem(++index, review.title);
-        subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
-        subList.setBold(false);
-        subList.setFontFamily('Arial');
-        subList.setNestingLevel(2);
-
-        const text = subList.editAsText();
-
-        text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
-      }
-    }
+    index = createSection('Pull Request Review(s)', reviews, parent, index);
   }
 }
 
@@ -308,13 +268,16 @@ function findSection(search, document) {
 
 function test() {
   const today = new Date('2025-11-21');
+
   const monday = getCurrentWeekMonday(today);
-  const friday = new Date(monday);
-  friday.setDate(friday.getDate() + 4);
+  const saturday = new Date(monday);
+  saturday.setDate(saturday.getDate() + 4);
 
   const events = getWeeklyEvents(monday);
-  const pullRequests = getWeeklyPullRequest(monday, friday);
-  const reviews = getWeeklyReviews(monday, friday);
+
+  const issues = getWeeklyIssues(monday, saturday);
+  const pullRequests = getWeeklyPullRequest(monday, saturday);
+  const reviews = getWeeklyReviews(monday, saturday);
 
   // const id = getLatestReportLink(monday);
 
@@ -328,7 +291,7 @@ function test() {
   const accomplishmentSection = findSection(Heading.Task, document);
   cleanSection(accomplishmentSection);
 
-  fillAccomplishments(pullRequests, reviews, accomplishmentSection, document);
+  fillAccomplishments({ pullRequests, reviews, issues }, accomplishmentSection);
 
   document.saveAndClose();
 }
