@@ -8,6 +8,11 @@ const Heading = {
   Events: 'Meetings/Events/Training/Conferences',
   Todo: 'Next Actions',
   Article: 'Technology, Business, Communication, Leadership, Management & Marketing',
+};
+
+const Repository = {
+  'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
+  'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
 }
 
 function formatDate(date) {
@@ -90,6 +95,7 @@ function getWeeklyPullRequest(from, to) {
 
   return pullRequests.map(pr => ({
     url: pr.html_url,
+    repository: pr.repository_url,
     title: pr.title,
     draft: pr.draft,
   }));
@@ -144,6 +150,30 @@ function cleanSection(section) {
   }
 }
 
+function groupPullRequest(pullRequests) {
+  return pullRequests.reduce((acc, curr) => {
+    const label = Repository[curr.repository] ?? 'Others';
+
+    if (!(label in acc)) {
+      acc[label] = [];
+    }
+
+    acc[label].push(curr);
+
+    return acc;
+  }, {});
+}
+
+function fillAccomplishments(pullRequests, reviews, section, document) {
+  const parent = section.getParent();
+  const index = parent.getChildIndex(section);
+
+  const placeholder = parent.getChild(index + 1);
+  parent.removeChild(placeholder);
+
+  const groupedAchivements = groupPullRequest(pullRequests);
+}
+
 function fillWeeklyEvents(events, section, document) {
   const parent = section.getParent();
   const index = parent.getChildIndex(section);
@@ -188,8 +218,10 @@ function test() {
   friday.setDate(friday.getDate() + 4);
 
   const events = getWeeklyEvents(monday);
-  // const pullRequest = getWeeklyPullRequest(monday, friday);
-  const review = getWeeklyReviews(monday, friday);
+  const pullRequests = getWeeklyPullRequest(monday, friday);
+  const reviews = getWeeklyReviews(monday, friday);
+
+  console.log(groupPullRequest(pullRequests));
 
   // const id = getLatestReportLink(monday);
 
