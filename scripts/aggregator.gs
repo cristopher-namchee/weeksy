@@ -192,17 +192,11 @@ function fillAccomplishments({ pullRequests, reviews, issues }, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
-  const placeholder = parent.getChild(index + 1);
-
-  if (placeholder.getText() === PlaceholderText) {
-    parent.removeChild(placeholder);
-  }
-
-  if (Object.keys(pullRequests).length > 0) {
-    const prSection = parent.insertListItem(++index, 'Pull Request(s) Created');
-    prSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    prSection.setBold(false);
-    prSection.setFontFamily('Arial');
+  if (Object.keys(issues).length > 0) {
+    const issueSection = parent.insertListItem(++index, 'Issue(s) Reported');
+    issueSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    issueSection.setBold(false);
+    issueSection.setFontFamily('Arial');
 
     for (const [repo, pullRequests] of Object.entries(groupedAchivements)) {
       const item = parent.insertListItem(++index, repo);
@@ -225,22 +219,57 @@ function fillAccomplishments({ pullRequests, reviews, issues }, section) {
     }
   }
 
+  if (Object.keys(pullRequests).length > 0) {
+    const prSection = parent.insertListItem(++index, 'Pull Request(s) Created');
+    prSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    prSection.setBold(false);
+    prSection.setFontFamily('Arial');
+
+    for (const [repo, pullRequestGroup] of Object.entries(pullRequests)) {
+      const item = parent.insertListItem(++index, repo);
+      item.setGlyphType(DocumentApp.GlyphType.NUMBER);
+      item.setBold(false);
+      item.setFontFamily('Arial');
+      subList.setNestingLevel(1);
+
+      for (const pullRequest of pullRequestGroup) {
+        const subList = parent.insertListItem(++index, pullRequest.title);
+        subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
+        subList.setBold(false);
+        subList.setFontFamily('Arial');
+        subList.setNestingLevel(2);
+
+        const text = subList.editAsText();
+
+        text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
+      }
+    }
+  }
+
   if (Object.keys(reviews).length > 0) {
     const reviewSection = parent.insertListItem(++index, 'Pull Request Reviews');
     reviewSection.setGlyphType(DocumentApp.GlyphType.NUMBER);
     reviewSection.setBold(false);
     reviewSection.setFontFamily('Arial');
 
-    for (const review of reviews) {
+    for (const [repo, reviewGroup] of Object.entries(reviews)) {
       const item = parent.insertListItem(++index, review.title);
       item.setGlyphType(DocumentApp.GlyphType.NUMBER);
       item.setBold(false);
       item.setFontFamily('Arial');
       item.setNestingLevel(1);
 
-      const text = item.editAsText();
+      for (const review of reviewGroup) {
+        const subList = parent.insertListItem(++index, review.title);
+        subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
+        subList.setBold(false);
+        subList.setFontFamily('Arial');
+        subList.setNestingLevel(2);
 
-      text.setLinkUrl(0, text.getText().length - 1, review.url);
+        const text = subList.editAsText();
+
+        text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
+      }
     }
   }
 }
@@ -248,11 +277,6 @@ function fillAccomplishments({ pullRequests, reviews, issues }, section) {
 function fillWeeklyEvents(events, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
-
-  const placeholder = parent.getChild(index + 1);
-  if (placeholder.getText() === PlaceholderText) {
-    parent.removeChild(placeholder);
-  }
 
   for (const event of events) {
     const part = parent.insertListItem(++index, event);
