@@ -1,7 +1,6 @@
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 
 const TestDocument = '1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo';
-const PlaceholderText = '(please insert here)';
 
 const Heading = {
   Issues: 'Issues',
@@ -266,12 +265,12 @@ function findSection(search, document) {
   return section;
 }
 
-function test() {
-  const today = new Date('2025-11-21');
+function main() {
+  const today = new Date();
 
   const monday = getCurrentWeekMonday(today);
   const saturday = new Date(monday);
-  saturday.setDate(saturday.getDate() + 4);
+  saturday.setDate(saturday.getDate() + 5);
 
   const events = getWeeklyEvents(monday);
 
@@ -279,9 +278,9 @@ function test() {
   const pullRequests = getWeeklyPullRequest(monday, saturday);
   const reviews = getWeeklyReviews(monday, saturday);
 
-  // const id = getLatestReportLink(monday);
+  const id = getLatestReportLink(monday);
 
-  const document = DocumentApp.openById(TestDocument);
+  const document = DocumentApp.openById(id);
 
   const meetingSection = findSection(Heading.Events, document);
   cleanSection(meetingSection);
