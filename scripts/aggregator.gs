@@ -13,7 +13,8 @@ const Heading = {
 const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
   'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
-}
+  'https://api.github.com/repos/cristopher-namchee/deploynaut': 'Deploynaut',
+};
 
 function formatDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -166,29 +167,63 @@ function groupPullRequest(pullRequests) {
 
 function fillAccomplishments(pullRequests, reviews, section, document) {
   const parent = section.getParent();
-  const index = parent.getChildIndex(section);
+  let index = parent.getChildIndex(section);
 
   const placeholder = parent.getChild(index + 1);
   parent.removeChild(placeholder);
 
   const groupedAchivements = groupPullRequest(pullRequests);
+
+  for (const [repo, pullRequests] of Object.entries(groupedAchivements)) {
+    const item = parent.insertListItem(++index, repo);
+    item.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    item.setBold(false);
+    item.setFontFamily('Arial');
+
+    for (const pullRequest of pullRequests) {
+      const subList = parent.insertListItem(++index, pullRequest.title);
+      subList.setGlyphType(DocumentApp.GlyphType.NUMBER);
+      subList.setBold(false);
+      subList.setFontFamily('Arial');
+      subList.setNestingLevel(1);
+
+      const text = subList.editAsText();
+      
+      text.setLinkUrl(0, text.getText().length - 1, pullRequest.url);
+    }
+  }
+
+  const part = parent.insertListItem(++index, 'Pull Request Reviews');
+  part.setGlyphType(DocumentApp.GlyphType.NUMBER);
+  part.setBold(false);
+  part.setFontFamily('Arial');
+
+  for (const review of reviews) {
+    const item = parent.insertListItem(++index, review.title);
+    item.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    item.setBold(false);
+    item.setFontFamily('Arial');
+    item.setNestingLevel(1);
+
+    const text = item.editAsText();
+      
+    text.setLinkUrl(0, text.getText().length - 1, review.url);
+  }
 }
 
 function fillWeeklyEvents(events, section, document) {
   const parent = section.getParent();
-  const index = parent.getChildIndex(section);
+  let index = parent.getChildIndex(section);
 
   const placeholder = parent.getChild(index + 1);
   parent.removeChild(placeholder);
 
   for (const event of events) {
-    const part = parent.insertListItem(index + 1, event);
+    const part = parent.insertListItem(++index, event);
     part.setGlyphType(DocumentApp.GlyphType.NUMBER);
     part.setBold(false);
     part.setFontFamily('Arial');
   }
-
-  document.saveAndClose();
 }
 
 function findSection(search, document) {
@@ -221,8 +256,6 @@ function test() {
   const pullRequests = getWeeklyPullRequest(monday, friday);
   const reviews = getWeeklyReviews(monday, friday);
 
-  console.log(groupPullRequest(pullRequests));
-
   // const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(TestDocument);
@@ -231,4 +264,11 @@ function test() {
   cleanSection(meetingSection);
 
   fillWeeklyEvents(events, meetingSection, document);
+  
+  const accomplishmentSection = findSection(Heading.Task, document);
+  cleanSection(accomplishmentSection);
+
+  fillAccomplishments(pullRequests, reviews, accomplishmentSection, document);
+
+  document.saveAndClose();
 }
