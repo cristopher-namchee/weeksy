@@ -1,5 +1,4 @@
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-const GithubUsername = PropertiesService.getScriptProperties().getProperty('GITHUB_USERNAME');
 
 const TestDocument = '1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo';
 
@@ -75,7 +74,7 @@ function getWeeklyEvents(date) {
 }
 
 function getWeeklyPullRequest(from, to) {
-  const query = `is:pr author:${GithubUsername} created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me created:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -87,10 +86,9 @@ function getWeeklyPullRequest(from, to) {
   })
 
   const body = response.getBlob().getDataAsString();
-  const pullRequests = JSON.parse(body);
+  const pullRequests = JSON.parse(body).items;
 
-  return pullRequests.items.map(pr => ({
-    id: pr.id,
+  return pullRequests.map(pr => ({
     url: pr.html_url,
     title: pr.title,
     draft: pr.draft,
@@ -98,7 +96,7 @@ function getWeeklyPullRequest(from, to) {
 }
 
 function getWeeklyReviews(from, to) {
-  const query = `is:pr commenter:${GithubUsername} created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr reviewed-by:@me updated:${formatDate(from)}..${formatDate(to)} -author:@me`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -110,8 +108,12 @@ function getWeeklyReviews(from, to) {
   })
 
   const body = response.getBlob().getDataAsString();
+  const reviews = JSON.parse(body).items;
 
-  return JSON.parse(body);
+  return reviews.map(review => ({
+    url: review.html_url,
+    title: review.title,
+  }));
 }
 
 function cleanSection(section) {
@@ -186,9 +188,8 @@ function test() {
   friday.setDate(friday.getDate() + 4);
 
   const events = getWeeklyEvents(monday);
-  const pullRequest = getWeeklyPullRequest(monday, friday);
-  console.log(pullRequest);
-  // const review = getWeeklyReviews(monday, friday);
+  // const pullRequest = getWeeklyPullRequest(monday, friday);
+  const review = getWeeklyReviews(monday, friday);
 
   // const id = getLatestReportLink(monday);
 
