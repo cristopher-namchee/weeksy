@@ -20,9 +20,10 @@ Apps Script that fills out your weekly report automatically.
 
 ## Installation
 
-- [Click the following link](https://script.google.com/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/edit?usp=sharing) to jump-start your project.
+- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/2) to jump-start your project.
 - In your Apps Script dashboard, navigate to Project Settings page
 - Add a script property, name it `GITHUB_TOKEN` and use the prepared GitHub token as value.
+- Add another script property, name it `REPORT_USERNAME` and use your own name as the value. This value will be used to search the weekly report document (`[Weekly Report: {REPORT_USERNAME}]`)
 - In your Apps Script dashboard, navigate to the Trigger page
 - Add a new trigger, set it to [Time-Driven](https://medium.com/google-cloud/easily-managing-time-driven-triggers-using-google-apps-script-7fa48546b4e7), set it to any value you want
 - Deploy your script instance as a library using the `Deploy` button

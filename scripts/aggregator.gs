@@ -1,6 +1,5 @@
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-
-const TestDocument = '1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo';
+const ReportUsername = PropertiesService.getScriptProperties().getProperties('REPORT_USERNAME');
 
 const Heading = {
   Issues: 'Issues',
@@ -37,7 +36,7 @@ function getLatestReportLink(date) {
   const saturday = new Date(date);
   saturday.setDate(saturday.getDate() + 5);
 
-  const documentName = `[Weekly Report: Cristopher] ${sunday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  const documentName = `[Weekly Report: ${ReportUsername}] ${sunday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
   const files = DriveApp.getFilesByName(documentName);
 
