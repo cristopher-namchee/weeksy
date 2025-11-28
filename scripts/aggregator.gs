@@ -1,5 +1,5 @@
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-const ReportUsername = PropertiesService.getScriptProperties().getProperties('REPORT_USERNAME');
+const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPORT_USERNAME');
 
 const Heading = {
   Issues: 'Issues',
@@ -13,6 +13,7 @@ const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
   'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
   'https://api.github.com/repos/cristopher-namchee/deploynaut': 'Deploynaut',
+  'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
 };
 
 function formatDate(date) {
