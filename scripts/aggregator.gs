@@ -56,7 +56,7 @@ function getWeeklyEvents(date) {
     const events = CalendarApp.getEventsForDay(targetDate);
 
     const meetings = events
-      .filter(event => event.getEventType() === CalendarApp.EventType.DEFAULT)
+      .filter(event => event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES)
       .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle() }));
 
     acc[formatDate(targetDate)] = meetings;
