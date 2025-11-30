@@ -101,6 +101,28 @@ function getWeeklyIssues(from, to) {
   })));
 }
 
+function getWeeklyUpdates(from, to) {
+    const query = `is:pr author:@me updated:${formatDate(from)}..${formatDate(to)}`;
+
+  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
+  const response = UrlFetchApp.fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${GithubToken}`,
+      Accept: 'application/vnd.github+json'
+    }
+  })
+
+  const body = response.getBlob().getDataAsString();
+  const pullRequests = JSON.parse(body).items;
+
+  return groupSearchItems(pullRequests.map(pr => ({
+    url: pr.html_url,
+    repository: pr.repository_url,
+    title: pr.title,
+  })));
+}
+
 function getWeeklyPullRequest(from, to) {
   const query = `is:pr author:@me created:${formatDate(from)}..${formatDate(to)}`;
 
@@ -216,12 +238,16 @@ function createSection(title, items, parent, index) {
   return index;
 }
 
-function fillAccomplishments({ pullRequests, reviews, issues }, section) {
+function fillAccomplishments({ pullRequests, reviews, issues, progress }, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
   if (Object.keys(issues).length > 0) {
     index = createSection('Issue(s) Reported', issues, parent, index);
+  }
+
+  if (Object.keys(progress).length > 0) {
+    index = createSection('In Progress', progress, parent, index);
   }
 
   if (Object.keys(pullRequests).length > 0) {
@@ -277,6 +303,7 @@ function main() {
   const issues = getWeeklyIssues(monday, saturday);
   const pullRequests = getWeeklyPullRequest(monday, saturday);
   const reviews = getWeeklyReviews(monday, saturday);
+  const inProgress = getWeeklyUpdates(monday, saturday);
 
   const id = getLatestReportLink(monday);
 
