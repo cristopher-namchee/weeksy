@@ -114,9 +114,9 @@ function getWeeklyUpdates(from, to) {
   })
 
   const body = response.getBlob().getDataAsString();
-  const pullRequests = JSON.parse(body).items;
+  const updates = JSON.parse(body).items;
 
-  return groupSearchItems(pullRequests.map(pr => ({
+  return groupSearchItems(updates.map(pr => ({
     url: pr.html_url,
     repository: pr.repository_url,
     title: pr.title,
@@ -161,6 +161,28 @@ function getWeeklyReviews(from, to) {
   const reviews = JSON.parse(body).items;
 
   return groupSearchItems(reviews.map(review => ({
+    url: review.html_url,
+    repository: review.repository_url,
+    title: review.title,
+  })));
+}
+
+function getCurrentlyAssignedIssues() {
+  const query = `is:issue assignee:@me`;
+
+  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
+  const response = UrlFetchApp.fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${GithubToken}`,
+      Accept: 'application/vnd.github+json'
+    }
+  })
+
+  const body = response.getBlob().getDataAsString();
+  const assigned = JSON.parse(body).items;
+
+  return groupSearchItems(assigned.map(review => ({
     url: review.html_url,
     repository: review.repository_url,
     title: review.title,
@@ -271,6 +293,31 @@ function fillWeeklyEvents(events, section) {
   }
 }
 
+function fillNextActions(todos, section) {
+  const parent = section.getParent();
+  let index = parent.getChildIndex(section);
+
+  for (const [todo, group] of Object.entries(todos)) {
+    const rootItem = parent.insertListItem(++index, todo);
+    rootItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    rootItem.setBold(false);
+    rootItem.setFontFamily('Arial');
+    rootItem.setNestingLevel(1);
+
+    for (const item of group) {
+      const el = parent.insertListItem(++index, item.title);
+      el.setGlyphType(DocumentApp.GlyphType.NUMBER);
+      el.setBold(false);
+      el.setFontFamily('Arial');
+      el.setNestingLevel(2);
+
+      const text = el.editAsText();
+
+      text.setLinkUrl(0, text.getText().length - 1, item.url);
+    }
+  }
+}
+
 function findSection(search, document) {
   const body = document.getBody();
   const headingText = body.findText(search);
@@ -303,7 +350,7 @@ function main() {
   const issues = getWeeklyIssues(monday, saturday);
   const pullRequests = getWeeklyPullRequest(monday, saturday);
   const reviews = getWeeklyReviews(monday, saturday);
-  const inProgress = getWeeklyUpdates(monday, saturday);
+  const progress = getWeeklyUpdates(monday, saturday);
 
   const id = getLatestReportLink(monday);
 
@@ -317,7 +364,13 @@ function main() {
   const accomplishmentSection = findSection(Heading.Task, document);
   cleanSection(accomplishmentSection);
 
-  fillAccomplishments({ pullRequests, reviews, issues }, accomplishmentSection);
+  fillAccomplishments({ pullRequests, reviews, issues, progress }, accomplishmentSection);
+
+  const nextActions = getCurrentlyAssignedIssues();
+  const nextActionSection = findSection(Heading.Todo, document);
+  cleanSection(nextActionSection);
+
+  fillNextActions(nextActions, nextActionSection);
 
   document.saveAndClose();
 }
