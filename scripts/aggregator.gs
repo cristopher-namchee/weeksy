@@ -168,7 +168,7 @@ function getWeeklyReviews(from, to) {
 }
 
 function getCurrentlyAssignedIssues() {
-  const query = `is:issue assignee:@me`;
+  const query = `is:issue is:open assignee:@me`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
