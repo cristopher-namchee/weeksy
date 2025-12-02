@@ -264,6 +264,14 @@ function fillAccomplishments({ pullRequests, reviews, issues, progress }, sectio
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
+  if (Object.keys(pullRequests).length === 0 && Object.keys(reviews).length === 0 && Object.keys(issues).length === 0 && Object.keys(progress).length === 0) {
+    const paragraph = parent.insertParagraph(++index, 'None');
+    paragraph.setBold(false);
+    paragraph.setFontFamily('Arial');
+
+    return;
+  }
+
   if (Object.keys(issues).length > 0) {
     index = createSection('Issue(s) Reported', issues, parent, index);
   }
@@ -285,6 +293,14 @@ function fillWeeklyEvents(events, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
+  if (events.length === 0) {
+    const paragraph = parent.insertParagraph(++index, 'None');
+    paragraph.setBold(false);
+    paragraph.setFontFamily('Arial');
+
+    return;
+  }
+
   for (const event of events) {
     const part = parent.insertListItem(++index, event);
     part.setGlyphType(DocumentApp.GlyphType.NUMBER);
@@ -296,6 +312,14 @@ function fillWeeklyEvents(events, section) {
 function fillNextActions(todos, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
+
+  if (Object.keys(todos).length === 0) {
+    const paragraph = parent.insertParagraph(++index, 'None');
+    paragraph.setBold(false);
+    paragraph.setFontFamily('Arial');
+
+    return;
+  }
 
   for (const [todo, group] of Object.entries(todos)) {
     const rootItem = parent.insertListItem(++index, todo);
@@ -339,7 +363,7 @@ function findSection(search, document) {
 }
 
 function main() {
-  const today = new Date();
+  const today = new Date('2025-11-21');
 
   const monday = getCurrentWeekMonday(today);
   const saturday = new Date(monday);
@@ -354,7 +378,7 @@ function main() {
 
   const id = getLatestReportLink(monday);
 
-  const document = DocumentApp.openById(id);
+  const document = DocumentApp.openById('1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo');
 
   const meetingSection = findSection(Heading.Events, document);
   cleanSection(meetingSection);
