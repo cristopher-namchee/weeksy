@@ -102,7 +102,7 @@ function getWeeklyIssues(from, to) {
 }
 
 function getWeeklyUpdates(from, to) {
-    const query = `is:pr author:@me updated:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me updated:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -342,6 +342,16 @@ function fillNextActions(todos, section) {
   }
 }
 
+// Fill with None for now
+function fillIssues(section) {
+  const parent = section.getParent();
+  let index = parent.getChildIndex(section);
+
+  const paragraph = parent.insertParagraph(++index, 'None');
+  paragraph.setBold(false);
+  paragraph.setFontFamily('Arial');
+}
+
 function findSection(search, document) {
   const body = document.getBody();
   const headingText = body.findText(search);
@@ -363,7 +373,7 @@ function findSection(search, document) {
 }
 
 function main() {
-  const today = new Date('2025-11-21');
+  const today = new Date();
 
   const monday = getCurrentWeekMonday(today);
   const saturday = new Date(monday);
@@ -378,7 +388,12 @@ function main() {
 
   const id = getLatestReportLink(monday);
 
-  const document = DocumentApp.openById('1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo');
+  const document = DocumentApp.openById(id);
+
+  const issuesSection = findSection(Heading.Issues, document);
+  cleanSection(issuesSection);
+
+  fillIssues(issuesSection);
 
   const meetingSection = findSection(Heading.Events, document);
   cleanSection(meetingSection);
