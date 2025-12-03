@@ -102,7 +102,7 @@ function getWeeklyIssues(from, to) {
 }
 
 function getWeeklyUpdates(from, to) {
-  const query = `is:pr author:@me updated:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me is:draft updated:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
@@ -124,7 +124,7 @@ function getWeeklyUpdates(from, to) {
 }
 
 function getWeeklyPullRequest(from, to) {
-  const query = `is:pr author:@me created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me -is:draft created:${formatDate(from)}..${formatDate(to)}`;
 
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
