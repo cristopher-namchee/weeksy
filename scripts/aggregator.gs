@@ -1,6 +1,8 @@
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPORT_USERNAME');
 
+const PlaceholderText = 'Note: Please refer to this guide on how to fill your weekly report';
+
 const Heading = {
   Issues: 'Issues',
   Task: 'Accomplishments',
@@ -372,6 +374,13 @@ function findSection(search, document) {
   return section;
 }
 
+function cleanPlaceholderNoteText(body) {
+  const lastChild = body.getChild(body.getNumChildren() - 1);
+  if (lastChild.asParagraph().getText() === PlaceholderText) {
+    lastChild.clear();
+  }
+}
+
 function main() {
   const today = new Date();
 
@@ -410,6 +419,8 @@ function main() {
   cleanSection(nextActionSection);
 
   fillNextActions(nextActions, nextActionSection);
+
+  cleanPlaceholderNoteText(document.getBody());
 
   document.saveAndClose();
 }
