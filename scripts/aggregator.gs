@@ -81,9 +81,7 @@ function getWeeklyEvents(date) {
   return deduplicatedEvents;
 }
 
-function getWeeklyIssues(from, to) {
-  const query = `is:issue author:@me created:${formatDate(from)}..${formatDate(to)}`;
-
+function fetchGithubData(query) {
   const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
   const response = UrlFetchApp.fetch(url, {
     method: 'GET',
@@ -103,92 +101,34 @@ function getWeeklyIssues(from, to) {
   })));
 }
 
+function getWeeklyIssues(from, to) {
+  const query = `is:issue author:@me created:${formatDate(from)}..${formatDate(to)}`;
+
+  return fetchGithubData(query);
+}
+
 function getWeeklyUpdates(from, to) {
   const query = `is:pr author:@me is:draft updated:${formatDate(from)}..${formatDate(to)}`;
 
-  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
-  const response = UrlFetchApp.fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${GithubToken}`,
-      Accept: 'application/vnd.github+json'
-    }
-  })
-
-  const body = response.getBlob().getDataAsString();
-  const updates = JSON.parse(body).items;
-
-  return groupSearchItems(updates.map(pr => ({
-    url: pr.html_url,
-    repository: pr.repository_url,
-    title: pr.title,
-  })));
+  return fetchGithubData(query);
 }
 
 function getWeeklyPullRequest(from, to) {
   const query = `is:pr author:@me -is:draft created:${formatDate(from)}..${formatDate(to)}`;
 
-  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
-  const response = UrlFetchApp.fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${GithubToken}`,
-      Accept: 'application/vnd.github+json'
-    }
-  })
-
-  const body = response.getBlob().getDataAsString();
-  const pullRequests = JSON.parse(body).items;
-
-  return groupSearchItems(pullRequests.map(pr => ({
-    url: pr.html_url,
-    repository: pr.repository_url,
-    title: pr.title,
-  })));
+  return fetchGithubData(query);
 }
 
 function getWeeklyReviews(from, to) {
   const query = `is:pr reviewed-by:@me updated:${formatDate(from)}..${formatDate(to)} -author:@me`;
 
-  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
-  const response = UrlFetchApp.fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${GithubToken}`,
-      Accept: 'application/vnd.github+json'
-    }
-  })
-
-  const body = response.getBlob().getDataAsString();
-  const reviews = JSON.parse(body).items;
-
-  return groupSearchItems(reviews.map(review => ({
-    url: review.html_url,
-    repository: review.repository_url,
-    title: review.title,
-  })));
+  return fetchGithubData(query);
 }
 
 function getCurrentlyAssignedIssues() {
   const query = `is:issue is:open -linked:pr assignee:@me`;
 
-  const url = 'https://api.github.com/search/issues?q=' + encodeURIComponent(query);
-  const response = UrlFetchApp.fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${GithubToken}`,
-      Accept: 'application/vnd.github+json'
-    }
-  })
-
-  const body = response.getBlob().getDataAsString();
-  const assigned = JSON.parse(body).items;
-
-  return groupSearchItems(assigned.map(review => ({
-    url: review.html_url,
-    repository: review.repository_url,
-    title: review.title,
-  })));
+  return fetchGithubData(query);
 }
 
 function cleanSection(section) {
