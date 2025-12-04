@@ -202,14 +202,18 @@ function createSection(title, items, parent, index) {
   return index;
 }
 
+function fillSectionWithNone(parent, index) {
+  const paragraph = parent.insertParagraph(++index, 'None');
+  paragraph.setBold(false);
+  paragraph.setFontFamily('Arial');
+}
+
 function fillAccomplishments({ pullRequests, reviews, issues, progress }, section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
   if (Object.keys(pullRequests).length === 0 && Object.keys(reviews).length === 0 && Object.keys(issues).length === 0 && Object.keys(progress).length === 0) {
-    const paragraph = parent.insertParagraph(++index, 'None');
-    paragraph.setBold(false);
-    paragraph.setFontFamily('Arial');
+    fillSectionWithNone(parent, index);
 
     return;
   }
@@ -236,9 +240,7 @@ function fillWeeklyEvents(events, section) {
   let index = parent.getChildIndex(section);
 
   if (events.length === 0) {
-    const paragraph = parent.insertParagraph(++index, 'None');
-    paragraph.setBold(false);
-    paragraph.setFontFamily('Arial');
+    fillSectionWithNone(parent, index);
 
     return;
   }
@@ -256,9 +258,7 @@ function fillNextActions(todos, section) {
   let index = parent.getChildIndex(section);
 
   if (Object.keys(todos).length === 0) {
-    const paragraph = parent.insertParagraph(++index, 'None');
-    paragraph.setBold(false);
-    paragraph.setFontFamily('Arial');
+    fillSectionWithNone(parent, index);
 
     return;
   }
@@ -289,9 +289,7 @@ function fillIssues(section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
-  const paragraph = parent.insertParagraph(++index, 'None');
-  paragraph.setBold(false);
-  paragraph.setFontFamily('Arial');
+  fillSectionWithNone(parent, index);
 }
 
 function findSection(search, document) {
@@ -322,45 +320,86 @@ function cleanPlaceholderNoteText(body) {
 }
 
 function main() {
+  const self = Session.getActiveUser().getEmail();
+
   const today = new Date();
 
   const monday = getCurrentWeekMonday(today);
   const saturday = new Date(monday);
   saturday.setDate(saturday.getDate() + 5);
 
-  const events = getWeeklyEvents(monday);
-
-  const issues = getWeeklyIssues(monday, saturday);
-  const pullRequests = getWeeklyPullRequest(monday, saturday);
-  const reviews = getWeeklyReviews(monday, saturday);
-  const progress = getWeeklyUpdates(monday, saturday);
-
   const id = getLatestReportLink(monday);
 
   const document = DocumentApp.openById(id);
 
-  const issuesSection = findSection(Heading.Issues, document);
-  cleanSection(issuesSection);
+  try {
+    const events = getWeeklyEvents(monday);
+    const issues = getWeeklyIssues(monday, saturday);
+    const pullRequests = getWeeklyPullRequest(monday, saturday);
+    const reviews = getWeeklyReviews(monday, saturday);
+    const progress = getWeeklyUpdates(monday, saturday);
 
-  fillIssues(issuesSection);
+    const issuesSection = findSection(Heading.Issues, document);
+    cleanSection(issuesSection);
 
-  const meetingSection = findSection(Heading.Events, document);
-  cleanSection(meetingSection);
+    fillIssues(issuesSection);
 
-  fillWeeklyEvents(events, meetingSection, document);
+    const meetingSection = findSection(Heading.Events, document);
+    cleanSection(meetingSection);
 
-  const accomplishmentSection = findSection(Heading.Task, document);
-  cleanSection(accomplishmentSection);
+    fillWeeklyEvents(events, meetingSection, document);
 
-  fillAccomplishments({ pullRequests, reviews, issues, progress }, accomplishmentSection);
+    const accomplishmentSection = findSection(Heading.Task, document);
+    cleanSection(accomplishmentSection);
 
-  const nextActions = getCurrentlyAssignedIssues();
-  const nextActionSection = findSection(Heading.Todo, document);
-  cleanSection(nextActionSection);
+    fillAccomplishments({ pullRequests, reviews, issues, progress }, accomplishmentSection);
 
-  fillNextActions(nextActions, nextActionSection);
+    const nextActions = getCurrentlyAssignedIssues();
+    const nextActionSection = findSection(Heading.Todo, document);
+    cleanSection(nextActionSection);
 
-  cleanPlaceholderNoteText(document.getBody());
+    fillNextActions(nextActions, nextActionSection);
 
-  document.saveAndClose();
+    cleanPlaceholderNoteText(document.getBody());
+
+    GmailApp.sendEmail(self, '✅ [Weeksy] Weekly Report Filled', '', {
+      htmlBody: `
+        <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h2>✅ Weekly Report Filled</h2>
+
+          <p>
+            <b>Weeksy</b> has successfully filled your weekly report <a href="${document.getUrl()}">here</a>.
+          
+            Please double-check the contents to ensure its validity.
+          </p>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+          <p style="font-size: 13px; color: #666;">
+            This is an automated message from <b>Weeksy</b>.
+          </p>
+        </div>`,
+    });
+  } catch (err) {
+    GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
+      htmlBody: `
+        <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h2>⚠️ Failed to Execute</h2>
+
+          <p><b>Weeksy</b> encountered an error during execution:</p>
+
+          <div style="background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 10px 15px; border-radius: 6px; margin: 10px 0;">
+            <pre style="margin: 0; font-family: Consolas, monospace; white-space: pre-wrap;">${err.message}</pre>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+          <p style="font-size: 13px; color: #666;">
+            This is an automated message from <b>Weeksy</b>.
+          </p>
+        </div>`,
+    });
+  } finally {
+    document.saveAndClose();
+  }
 }
