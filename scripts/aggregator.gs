@@ -324,15 +324,15 @@ function main() {
 
   const today = new Date();
 
-  const monday = getCurrentWeekMonday(today);
-  const saturday = new Date(monday);
-  saturday.setDate(saturday.getDate() + 5);
-
-  const id = getLatestReportLink(monday);
-
-  const document = DocumentApp.openById(id);
-
   try {
+    const monday = getCurrentWeekMonday(today);
+    const saturday = new Date(monday);
+    saturday.setDate(saturday.getDate() + 5);
+
+    const id = getLatestReportLink(monday);
+
+    const document = DocumentApp.openById(id);
+
     const events = getWeeklyEvents(monday);
     const issues = getWeeklyIssues(monday, saturday);
     const pullRequests = getWeeklyPullRequest(monday, saturday);
