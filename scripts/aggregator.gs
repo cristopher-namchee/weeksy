@@ -40,7 +40,6 @@ function getLatestReportLink(date) {
   saturday.setDate(saturday.getDate() + 5);
 
   const documentName = `[Weekly Report: ${ReportUsername}] ${sunday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`;
-  console.log(documentName);
 
   const files = DriveApp.getFilesByName(documentName);
 
@@ -366,7 +365,7 @@ function main() {
     GmailApp.sendEmail(self, '✅ [Weeksy] Weekly Report Filled', '', {
       htmlBody: `
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
-          <h2>✅ Weekly Report Filled</h2>
+          <h2>Weekly Report Filled</h2>
 
           <p>
             <b>Weeksy</b> has successfully filled your weekly report <a href="${document.getUrl()}">here</a>.
@@ -385,7 +384,7 @@ function main() {
     GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
       htmlBody: `
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
-          <h2>⚠️ Failed to Execute</h2>
+          <h2>Failed to Execute</h2>
 
           <p><b>Weeksy</b> encountered an error during execution:</p>
 
