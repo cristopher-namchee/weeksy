@@ -39,7 +39,8 @@ function getLatestReportLink(date) {
   const saturday = new Date(date);
   saturday.setDate(saturday.getDate() + 5);
 
-  const documentName = `[Weekly Report: ${ReportUsername}] ${sunday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  const documentName = `[Weekly Report: ${ReportUsername}] ${sunday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+  console.log(documentName);
 
   const files = DriveApp.getFilesByName(documentName);
 
