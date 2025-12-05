@@ -109,7 +109,7 @@ function getWeeklyIssues(from, to) {
 }
 
 function getWeeklyUpdates(from, to) {
-  const query = `is:pr author:@me is:draft updated:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me is:draft is:open updated:${formatDate(from)}..${formatDate(to)}`;
 
   return fetchGithubData(query);
 }
