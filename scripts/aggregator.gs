@@ -9,6 +9,7 @@ const Heading = {
   Events: 'Meetings/Events/Training/Conferences',
   Todo: 'Next Actions',
   Article: 'Technology, Business, Communication, Leadership, Management & Marketing',
+  OMTM: 'Key Metrics / OMTM',
 };
 
 const Repository = {
@@ -126,7 +127,7 @@ function getWeeklyReviews(from, to) {
 }
 
 function getCurrentlyAssignedIssues() {
-  const query = `is:issue is:open -linked:pr assignee:@me`;
+  const query = `is:issue is:open assignee:@me`;
 
   return fetchGithubData(query);
 }
@@ -290,6 +291,21 @@ function fillIssues(section) {
   let index = parent.getChildIndex(section);
 
   fillSectionWithNone(parent, index);
+}
+
+function fillOMTM(section) {
+  const parent = section.getParent();
+  let index = parent.getChildIndex(section);
+
+  const bugs = Bugle.getBugReport();
+  const aip = Bugle.getAIPReport();
+  const performance = Bugle.getLLMPerformanceReport();
+
+  console.log(bugs, aip, performance);
+}
+
+function omtmTest() {
+  const omtmSection = 
 }
 
 function findSection(search, document) {
