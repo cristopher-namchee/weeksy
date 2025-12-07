@@ -1,3 +1,5 @@
+const bugsSheet = '1ZGlbEKvVqaP4BL2a81sKSHaBJw11cYxkyKQpCPdPV7A';
+
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPORT_USERNAME');
 
@@ -297,15 +299,28 @@ function fillOMTM(section) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
-  const bugs = Bugle.getBugReport();
+  const ss = SpreadsheetApp.openById(bugsSheet);
+  const sheet = ss.getSheets()[5];
+
+  const bugs = Bugle.getBugReport(sheet);
   const aip = Bugle.getAIPReport();
-  const performance = Bugle.getLLMPerformanceReport();
+  const performance = Bugle.getLLMPerformanceReport(sheet);
+
+  const header = parent.insertParagraph(++index, `Month-to-Date (${new Date().toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })})`);
+  header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+  header.setBold(false);
+  header.setFontFamily('Arial');
 
   console.log(bugs, aip, performance);
 }
 
 function omtmTest() {
-  const omtmSection = 
+  const document = DocumentApp.openById('1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo');
+
+  const omtmSection = findSection(Heading.OMTM, document);
+  cleanSection(omtmSection);
+
+  fillOMTM(omtmSection);
 }
 
 function findSection(search, document) {
