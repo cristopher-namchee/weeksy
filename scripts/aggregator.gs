@@ -21,11 +21,15 @@ const Repository = {
   'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
 };
 
-function formatDate(date) {
+function formatGithubDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
   const actualDate = ('0' + date.getDate()).slice(-2);
 
   return `${date.getFullYear()}-${month}-${actualDate}`;
+}
+
+function formatDate(date) {
+  return date.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 function getCurrentWeekMonday(date) {
@@ -36,13 +40,13 @@ function getCurrentWeekMonday(date) {
 }
 
 function getLatestReportLink(date) {
-  const sunday = new Date(date);
-  sunday.setDate(sunday.getDate() - 1);
+  const prevSunday = new Date(date);
+  prevSunday.setDate(prevSunday.getDate() - 1);
 
-  const saturday = new Date(date);
-  saturday.setDate(saturday.getDate() + 5);
+  const nextSaturday = new Date(date);
+  nextSaturday.setDate(nextSaturday.getDate() + 5);
 
-  const documentName = `[Weekly Report: ${ReportUsername}] ${sunday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })} - ${saturday.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+  const documentName = `[Weekly Report: ${ReportUsername}] ${formatDate(prevSunday)} - ${formatDate(nextSaturday)}`;
 
   const files = DriveApp.getFilesByName(documentName);
 
@@ -64,7 +68,7 @@ function getWeeklyEvents(date) {
       .filter(event => event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES)
       .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle() }));
 
-    acc[formatDate(targetDate)] = meetings;
+    acc[formatGithubDate(targetDate)] = meetings;
 
     return acc;
   }, {});
@@ -105,25 +109,25 @@ function fetchGithubData(query) {
 }
 
 function getWeeklyIssues(from, to) {
-  const query = `is:issue author:@me created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:issue author:@me created:${formatGithubDate(from)}..${formatGithubDate(to)}`;
 
   return fetchGithubData(query);
 }
 
 function getWeeklyUpdates(from, to) {
-  const query = `is:pr author:@me is:draft is:open updated:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me is:draft is:open updated:${formatGithubDate(from)}..${formatGithubDate(to)}`;
 
   return fetchGithubData(query);
 }
 
 function getWeeklyPullRequest(from, to) {
-  const query = `is:pr author:@me -is:draft created:${formatDate(from)}..${formatDate(to)}`;
+  const query = `is:pr author:@me -is:draft created:${formatGithubDate(from)}..${formatGithubDate(to)}`;
 
   return fetchGithubData(query);
 }
 
 function getWeeklyReviews(from, to) {
-  const query = `is:pr reviewed-by:@me updated:${formatDate(from)}..${formatDate(to)} -author:@me`;
+  const query = `is:pr reviewed-by:@me updated:${formatGithubDate(from)}..${formatGithubDate(to)} -author:@me`;
 
   return fetchGithubData(query);
 }
@@ -295,7 +299,7 @@ function fillIssues(section) {
   fillSectionWithNone(parent, index);
 }
 
-function fillOMTM(section) {
+function fillOMTM(section, date) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
 
@@ -306,12 +310,13 @@ function fillOMTM(section) {
   const aip = Bugle.getAIPReport();
   const performance = Bugle.getLLMPerformanceReport(sheet);
 
-  const header = parent.insertParagraph(++index, `Month-to-Date (${new Date().toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })})`);
+  const firstDay = new Date(date);
+  firstDay.setDate(1);
+
+  const header = parent.insertParagraph(++index, `Month-to-Date (${formatDate(firstDay)} - ${formatDate(date)})`);
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(false);
   header.setFontFamily('Arial');
-
-  console.log(bugs, aip, performance);
 }
 
 function omtmTest() {
@@ -320,7 +325,7 @@ function omtmTest() {
   const omtmSection = findSection(Heading.OMTM, document);
   cleanSection(omtmSection);
 
-  fillOMTM(omtmSection);
+  fillOMTM(omtmSection, new Date());
 }
 
 function findSection(search, document) {
