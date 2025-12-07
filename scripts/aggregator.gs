@@ -317,6 +317,23 @@ function fillOMTM(section, date) {
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(false);
   header.setFontFamily('Arial');
+
+  const internalHeader = parent.insertParagraph(++index, 'Bugs from Internal Report');
+  internalHeader.setHeading(DocumentApp.ParagraphHeading.HEADING5);
+  internalHeader.setBold(true);
+
+  const firstSub = parent.insertParagraph(++index, `Total Opened: ${bugs.internal.open.reduce((acc, curr) => acc + curr, 0)} bugs`);
+  firstSub.setBold(false);
+
+  parent.insertParagraph(++index, `      P0: ${bugs.internal.open[0]} bugs`);
+  parent.insertParagraph(++index, `      P1: ${bugs.internal.open[1]} bugs`);
+  parent.insertParagraph(++index, `      P2: ${bugs.internal.open[2]} bugs\n`);
+
+  parent.insertParagraph(++index, `Total Closed: ${bugs.internal.closed.reduce((acc, curr) => acc + curr, 0)} bugs`);
+  parent.insertParagraph(++index, `      P0: ${bugs.internal.closed[0]} bugs`);
+  parent.insertParagraph(++index, `      P1: ${bugs.internal.closed[1]} bugs`);
+  parent.insertParagraph(++index, `      P2: ${bugs.internal.closed[2]} bugs`);
+  parent.insertParagraph(++index, `      Closed as enhancements: ${bugs.internal.closed[3]} bugs`);
 }
 
 function omtmTest() {
