@@ -62,10 +62,32 @@ function getWeeklyEvents(date) {
     const targetDate = new Date(date);
     targetDate.setDate(targetDate.getDate() + curr);
 
+    const NOON = new Date(targetDate);
+    NOON.setHours(12, 0, 0, 0);
+
+    const ONE_PM = new Date(targetDate);
+    ONE_PM.setHours(13, 0, 0, 0);
+
     const events = CalendarApp.getEventsForDay(targetDate);
 
     const meetings = events
-      .filter(event => event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES)
+      .filter(event => {
+        const type = event.getEventType();
+        const start = event.getStartTime();
+        const end = event.getEndTime();
+
+        if (type === CalendarApp.EventType.OUT_OF_OFFICE) {
+          const isLunch =
+            start === NOON && end === ONE_PM;
+
+          return !isLunch;
+        }
+
+        return (
+          type === CalendarApp.EventType.DEFAULT &&
+          event.getMyStatus() === CalendarApp.GuestStatus.YES
+        );
+      })
       .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle() }));
 
     acc[formatGithubDate(targetDate)] = meetings;
@@ -77,13 +99,15 @@ function getWeeklyEvents(date) {
   const deduplicatedEvents = [];
 
   for (const eventOfDay of Object.values(events)) {
-    for (const { name } of eventOfDay) {
+    for (const { name, time } of eventOfDay) {
       if (!table.has(name)) {
-        deduplicatedEvents.push(name);
+        deduplicatedEvents.push({ name, time });
         table.add(name);
       }
     }
   }
+
+  console.log(deduplicatedEvents);
 
   return deduplicatedEvents;
 }
