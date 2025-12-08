@@ -189,15 +189,11 @@ function createSection(title, items, parent, index) {
   for (const [repo, group] of Object.entries(items)) {
     const rootItem = parent.insertListItem(++index, repo);
     rootItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    rootItem.setBold(false);
-    rootItem.setFontFamily('Arial');
     rootItem.setNestingLevel(1);
 
     for (const item of group) {
       const el = parent.insertListItem(++index, item.title);
       el.setGlyphType(DocumentApp.GlyphType.NUMBER);
-      el.setBold(false);
-      el.setFontFamily('Arial');
       el.setNestingLevel(2);
 
       const text = el.editAsText();
@@ -281,7 +277,6 @@ function fillNextActions(todos, section) {
       const el = parent.insertListItem(++index, item.title);
       el.setGlyphType(DocumentApp.GlyphType.NUMBER);
       el.setBold(false);
-      el.setFontFamily('Arial');
       el.setNestingLevel(2);
 
       const text = el.editAsText();
@@ -297,6 +292,47 @@ function fillIssues(section) {
   let index = parent.getChildIndex(section);
 
   fillSectionWithNone(parent, index);
+}
+
+function fillBugReport(bugs, heading, parent, index) {
+  const header = parent.insertParagraph(++index, heading);
+  header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+  header.setBold(true);
+
+  parent.insertParagraph(++index, `Total Opened: ${bugs.open.reduce((acc, curr) => acc + curr, 0)} bugs`);
+
+  let p = parent.insertParagraph(++index, `      P0: ${bugs.open[0]} bugs`);
+  p.setBold(false);
+  parent.insertParagraph(++index, `      P1: ${bugs.open[1]} bugs`);
+  parent.insertParagraph(++index, `      P2: ${bugs.open[2]} bugs\n`);
+
+  const closedHeader = parent.insertParagraph(++index, `Total Closed: ${bugs.closed.reduce((acc, curr) => acc + curr, 0)} bugs`);
+  closedHeader.setBold(true);
+
+  p = parent.insertParagraph(++index, `      P0: ${bugs.closed[0]} bugs`);
+  p.setBold(false);
+
+  parent.insertParagraph(++index, `      P1: ${bugs.closed[1]} bugs`);
+  parent.insertParagraph(++index, `      P2: ${bugs.closed[2]} bugs`);
+  parent.insertParagraph(++index, `      Closed as enhancements: ${bugs.closed[3]} bugs`);
+
+  return index;
+}
+
+function fillPerformanceReport(performance, parent, index) {
+  const header = parent.insertParagraph(++index, 'GLChat Performance Report');
+  header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+  header.setBold(true);
+
+  const modelDesc = parent.insertParagraph(++index, performance[0]);
+  modelDesc.setItalic(true);
+
+  for (let idx = 1; idx < performance.length; idx++) {
+    const p = parent.insertParagraph(++index, `      ${performance[idx]}`);
+    p.setBold(false);
+    p.setItalic(false);
+  }
+  return index;
 }
 
 function fillOMTM(section, date) {
@@ -318,22 +354,9 @@ function fillOMTM(section, date) {
   header.setBold(false);
   header.setFontFamily('Arial');
 
-  const internalHeader = parent.insertParagraph(++index, 'Bugs from Internal Report');
-  internalHeader.setHeading(DocumentApp.ParagraphHeading.HEADING5);
-  internalHeader.setBold(true);
-
-  const firstSub = parent.insertParagraph(++index, `Total Opened: ${bugs.internal.open.reduce((acc, curr) => acc + curr, 0)} bugs`);
-  firstSub.setBold(false);
-
-  parent.insertParagraph(++index, `      P0: ${bugs.internal.open[0]} bugs`);
-  parent.insertParagraph(++index, `      P1: ${bugs.internal.open[1]} bugs`);
-  parent.insertParagraph(++index, `      P2: ${bugs.internal.open[2]} bugs\n`);
-
-  parent.insertParagraph(++index, `Total Closed: ${bugs.internal.closed.reduce((acc, curr) => acc + curr, 0)} bugs`);
-  parent.insertParagraph(++index, `      P0: ${bugs.internal.closed[0]} bugs`);
-  parent.insertParagraph(++index, `      P1: ${bugs.internal.closed[1]} bugs`);
-  parent.insertParagraph(++index, `      P2: ${bugs.internal.closed[2]} bugs`);
-  parent.insertParagraph(++index, `      Closed as enhancements: ${bugs.internal.closed[3]} bugs`);
+  index = fillBugReport(bugs.internal, 'Bugs from Internal Report', parent, index);
+  index = fillBugReport(bugs.external, 'Bugs from External Report', parent, index);
+  index = fillPerformanceReport(performance, parent, index);
 }
 
 function omtmTest() {
