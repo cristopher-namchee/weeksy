@@ -184,6 +184,7 @@ function createSection(title, items, parent, index) {
   const section = parent.insertListItem(++index, title);
   section.setGlyphType(DocumentApp.GlyphType.NUMBER);
   section.setBold(false);
+  section.setFontFamily('Arial');
 
   for (const [repo, group] of Object.entries(items)) {
     const rootItem = parent.insertListItem(++index, repo);
@@ -207,6 +208,7 @@ function createSection(title, items, parent, index) {
 function fillSectionWithNone(parent, index) {
   const paragraph = parent.insertParagraph(++index, 'None');
   paragraph.setBold(false);
+  paragraph.setFontFamily('Arial');
 }
 
 function fillAccomplishments({ pullRequests, reviews, issues, progress }, section) {
@@ -247,9 +249,10 @@ function fillWeeklyEvents(events, section) {
   }
 
   for (const event of events) {
-    const part = parent.insertListItem(++index, event);
-    part.setGlyphType(DocumentApp.GlyphType.NUMBER);
-    part.setBold(false);
+    const item = parent.insertListItem(++index, event);
+    item.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    item.setBold(false);
+    item.setFontFamily('Arial');
   }
 }
 
@@ -267,15 +270,16 @@ function fillNextActions(todos, section) {
     const rootItem = parent.insertListItem(++index, todo);
     rootItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
     rootItem.setBold(false);
+    rootItem.setFontFamily('Arial');
     rootItem.setNestingLevel(1);
 
     for (const item of group) {
-      const el = parent.insertListItem(++index, item.title);
-      el.setGlyphType(DocumentApp.GlyphType.NUMBER);
-      el.setBold(false);
-      el.setNestingLevel(2);
+      const groupItem = parent.insertListItem(++index, item.title);
+      groupItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
+      groupItem.setBold(false);
+      groupItem.setNestingLevel(2);
 
-      const text = el.editAsText();
+      const text = groupItem.editAsText();
 
       text.setLinkUrl(0, text.getText().length - 1, item.url);
     }
@@ -327,9 +331,9 @@ function fillPerformanceReport(performance, parent, index) {
   modelDesc.setItalic(true);
 
   for (let idx = 1; idx < performance.length; idx++) {
-    const p = parent.insertParagraph(++index, `      ${performance[idx]}`);
-    p.setBold(false);
-    p.setItalic(false);
+    const paragraph = parent.insertParagraph(++index, `      ${performance[idx]}`);
+    paragraph.setBold(false);
+    paragraph.setItalic(false);
   }
   return index;
 }
@@ -347,9 +351,9 @@ function fillAIPReport(aip, parent, index) {
   let counter = 1;
 
   for (const [scenario, target] of Object.entries(aip.scenario)) {
-    const p = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
-    p.setBold(false);
-    p.setItalic(false);
+    const paragraph = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
+    paragraph.setBold(false);
+    paragraph.setItalic(false);
   }
 
   return index;
@@ -377,15 +381,6 @@ function fillOMTM(section, date) {
   index = fillBugReport(bugs.external, 'Bugs from External Report', parent, index);
   index = fillPerformanceReport(performance, parent, index);
   index = fillAIPReport(aip, parent, index);
-}
-
-function omtmTest() {
-  const document = DocumentApp.openById('1iwJ29r0joOY65Q7uBEotMd-XiULGodqO2nGllWUvLMo');
-
-  const omtmSection = findSection(Heading.OMTM, document);
-  cleanSection(omtmSection);
-
-  fillOMTM(omtmSection, new Date());
 }
 
 function findSection(search, document) {
@@ -455,6 +450,11 @@ function main() {
     cleanSection(nextActionSection);
 
     fillNextActions(nextActions, nextActionSection);
+
+    const omtmSection = findSection(Heading.OMTM, document);
+    cleanSection(omtmSection);
+
+    fillOMTM(omtmSection, today);
 
     cleanPlaceholderNoteText(document.getBody());
 

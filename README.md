@@ -25,7 +25,7 @@ Apps Script that fills out your weekly report automatically.
 
 ## Installation
 
-- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/11) to jump-start your project.
+- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/12) to jump-start your project.
 - In your Apps Script dashboard, navigate to Project Settings page
 - Add a script property, name it `GITHUB_TOKEN` and use the prepared GitHub token as value.
 - Add another script property, name it `REPORT_USERNAME` and use your own name as the value. This value will be used to search the weekly report document (`[Weekly Report: {REPORT_USERNAME}]`)
