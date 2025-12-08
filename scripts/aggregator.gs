@@ -294,6 +294,21 @@ function fillIssues(section) {
   fillSectionWithNone(parent, index);
 }
 
+function getOMTMData() {
+  const ss = SpreadsheetApp.openById(bugsSheet);
+  const sheet = ss.getSheets()[5];
+
+  const bugs = Bugle.getBugReport(sheet);
+  const aip = Bugle.getAIPReport();
+  const performance = Bugle.getLLMPerformanceReport(sheet);
+
+  return {
+    bugs,
+    aip,
+    performance,
+  };
+}
+
 function fillBugReport(bugs, heading, parent, index) {
   const header = parent.insertParagraph(++index, heading);
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
@@ -359,16 +374,9 @@ function fillAIPReport(aip, parent, index) {
   return index;
 }
 
-function fillOMTM(section, date) {
+function fillOMTM({ bugs, performance, aip }, section, date) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
-
-  const ss = SpreadsheetApp.openById(bugsSheet);
-  const sheet = ss.getSheets()[5];
-
-  const bugs = Bugle.getBugReport(sheet);
-  const aip = Bugle.getAIPReport();
-  const performance = Bugle.getLLMPerformanceReport(sheet);
 
   const firstDay = new Date(date);
   firstDay.setDate(1);
@@ -451,10 +459,11 @@ function main() {
 
     fillNextActions(nextActions, nextActionSection);
 
+    const omtmData = getOMTMData();
     const omtmSection = findSection(Heading.OMTM, document);
     cleanSection(omtmSection);
 
-    fillOMTM(omtmSection, today);
+    fillOMTM(omtmData, omtmSection, today);
 
     cleanPlaceholderNoteText(document.getBody());
 
