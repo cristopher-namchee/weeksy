@@ -184,7 +184,6 @@ function createSection(title, items, parent, index) {
   const section = parent.insertListItem(++index, title);
   section.setGlyphType(DocumentApp.GlyphType.NUMBER);
   section.setBold(false);
-  section.setFontFamily('Arial');
 
   for (const [repo, group] of Object.entries(items)) {
     const rootItem = parent.insertListItem(++index, repo);
@@ -208,7 +207,6 @@ function createSection(title, items, parent, index) {
 function fillSectionWithNone(parent, index) {
   const paragraph = parent.insertParagraph(++index, 'None');
   paragraph.setBold(false);
-  paragraph.setFontFamily('Arial');
 }
 
 function fillAccomplishments({ pullRequests, reviews, issues, progress }, section) {
@@ -252,7 +250,6 @@ function fillWeeklyEvents(events, section) {
     const part = parent.insertListItem(++index, event);
     part.setGlyphType(DocumentApp.GlyphType.NUMBER);
     part.setBold(false);
-    part.setFontFamily('Arial');
   }
 }
 
@@ -270,7 +267,6 @@ function fillNextActions(todos, section) {
     const rootItem = parent.insertListItem(++index, todo);
     rootItem.setGlyphType(DocumentApp.GlyphType.NUMBER);
     rootItem.setBold(false);
-    rootItem.setFontFamily('Arial');
     rootItem.setNestingLevel(1);
 
     for (const item of group) {
@@ -352,7 +348,6 @@ function fillOMTM(section, date) {
   const header = parent.insertParagraph(++index, `Month-to-Date (${formatDate(firstDay)} - ${formatDate(date)})`);
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(false);
-  header.setFontFamily('Arial');
 
   index = fillBugReport(bugs.internal, 'Bugs from Internal Report', parent, index);
   index = fillBugReport(bugs.external, 'Bugs from External Report', parent, index);
@@ -456,6 +451,8 @@ function main() {
           </p>
         </div>`,
     });
+
+    document.saveAndClose();
   } catch (err) {
     GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
       htmlBody: `
@@ -475,7 +472,5 @@ function main() {
           </p>
         </div>`,
     });
-  } finally {
-    document.saveAndClose();
   }
 }
