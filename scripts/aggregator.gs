@@ -295,19 +295,21 @@ function fillBugReport(bugs, heading, parent, index) {
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(true);
 
-  parent.insertParagraph(++index, `Total Opened: ${bugs.open.reduce((acc, curr) => acc + curr, 0)} bugs`);
+  const openedHeader = parent.insertParagraph(++index, `Total Opened: ${bugs.open.reduce((acc, curr) => acc + curr, 0)} bugs`);
+  openedHeader.setHeading(DocumentApp.ParagraphHeading.HEADING5);
+  openedHeader.setItalic(true);
 
   let p = parent.insertParagraph(++index, `      P0: ${bugs.open[0]} bugs`);
-  p.setBold(false);
+  p.setItalic(false);
   parent.insertParagraph(++index, `      P1: ${bugs.open[1]} bugs`);
-  parent.insertParagraph(++index, `      P2: ${bugs.open[2]} bugs\n`);
+  parent.insertParagraph(++index, `      P2: ${bugs.open[2]} bugs`);
 
   const closedHeader = parent.insertParagraph(++index, `Total Closed: ${bugs.closed.reduce((acc, curr) => acc + curr, 0)} bugs`);
-  closedHeader.setBold(true);
+  closedHeader.setHeading(DocumentApp.ParagraphHeading.HEADING5);
+  closedHeader.setItalic(true);
 
   p = parent.insertParagraph(++index, `      P0: ${bugs.closed[0]} bugs`);
-  p.setBold(false);
-
+  p.setItalic(false);
   parent.insertParagraph(++index, `      P1: ${bugs.closed[1]} bugs`);
   parent.insertParagraph(++index, `      P2: ${bugs.closed[2]} bugs`);
   parent.insertParagraph(++index, `      Closed as enhancements: ${bugs.closed[3]} bugs`);
@@ -321,6 +323,7 @@ function fillPerformanceReport(performance, parent, index) {
   header.setBold(true);
 
   const modelDesc = parent.insertParagraph(++index, performance[0]);
+  modelDesc.setHeading(DocumentApp.ParagraphHeading.HEADING5);
   modelDesc.setItalic(true);
 
   for (let idx = 1; idx < performance.length; idx++) {
