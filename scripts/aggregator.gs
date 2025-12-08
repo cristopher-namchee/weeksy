@@ -334,6 +334,27 @@ function fillPerformanceReport(performance, parent, index) {
   return index;
 }
 
+function fillAIPReport(aip, parent, index) {
+  const header = parent.insertParagraph(++index, 'GL AIP Performance Report');
+  header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+  header.setBold(true);
+
+  // this is fixed for now
+  const modelDesc = parent.insertParagraph(++index, `gpt-4.1 ${aip.users} concurrent users`);
+  modelDesc.setHeading(DocumentApp.ParagraphHeading.HEADING5);
+  modelDesc.setItalic(true);
+
+  let counter = 1;
+
+  for (const [scenario, target] of Object.entries(aip.scenario)) {
+    const p = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
+    p.setBold(false);
+    p.setItalic(false);
+  }
+
+  return index;
+}
+
 function fillOMTM(section, date) {
   const parent = section.getParent();
   let index = parent.getChildIndex(section);
@@ -355,6 +376,7 @@ function fillOMTM(section, date) {
   index = fillBugReport(bugs.internal, 'Bugs from Internal Report', parent, index);
   index = fillBugReport(bugs.external, 'Bugs from External Report', parent, index);
   index = fillPerformanceReport(performance, parent, index);
+  index = fillAIPReport(aip, parent, index);
 }
 
 function omtmTest() {
