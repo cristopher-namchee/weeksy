@@ -9,12 +9,20 @@ Apps Script that fills out your weekly report automatically.
   - List of Pull Request you create
   - List of PR reviews
 - Fills out your 'Meeting' section with meetings you have in your Google Calendar
-- Fills out your 'Next Actions' section with issues you have been assigned with (that doesn't have PR yet)
+- Fills out your 'Next Actions' section with issues you have been assigned with
+- Fills out your 'OMTM' section with actual GLAIR report
 - Sends you an e-mail on success / error.
+
+> [!IMPORTANT]
+> This automation doesn't fill the following section:
+>   1. `Issues`
+>   2. `Technology, Business, Communication, Leadership, Management & Marketing`
+>
+> As I believe they should be filled manually.
 
 ## Roadmap
 
-- [ ] Fill OMTM
+- [ ] Fill Out-Of-Office
 
 ## Prerequisites
 
