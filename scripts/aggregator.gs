@@ -3,6 +3,11 @@ const bugsSheet = '1ZGlbEKvVqaP4BL2a81sKSHaBJw11cYxkyKQpCPdPV7A';
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPORT_USERNAME');
 
+const OOTMSheetName = 'REPORT';
+
+// fill this
+const IgnoredWeeklyEvents = ['Lunch'];
+
 const PlaceholderText = 'Note: Please refer to this guide on how to fill your weekly report';
 
 const Heading = {
@@ -64,16 +69,11 @@ function getWeeklyEvents(date) {
 
     const events = CalendarApp.getEventsForDay(targetDate);
 
-    const meetings = events
-      .filter(event => {
-        return (
-          type === CalendarApp.EventType.DEFAULT &&
-          event.getMyStatus() === CalendarApp.GuestStatus.YES
-        ) || type === CalendarApp.EventType.OUT_OF_OFFICE;
-      })
+    const filteredEvents = events
+      .filter(event => (event.type === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES))
       .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle() }));
 
-    acc[formatGithubDate(targetDate)] = meetings;
+    acc[formatGithubDate(targetDate)] = filteredEvents;
 
     return acc;
   }, {});
@@ -82,15 +82,15 @@ function getWeeklyEvents(date) {
   const deduplicatedEvents = [];
 
   for (const eventOfDay of Object.values(events)) {
-    for (const { name, time } of eventOfDay) {
+    for (const { name } of eventOfDay) {
       if (!table.has(name)) {
-        deduplicatedEvents.push({ name, time });
+        deduplicatedEvents.push(name);
         table.add(name);
-      }
+      } 
     }
   }
 
-  console.log(deduplicatedEvents);
+  console.log(JSON.stringify(events, null, 2));
 
   return deduplicatedEvents;
 }
@@ -303,7 +303,7 @@ function fillIssues(section) {
 
 function getOMTMData() {
   const ss = SpreadsheetApp.openById(bugsSheet);
-  const sheet = ss.getSheets()[5];
+  const sheet = ss.getSheets().find(value => value.getName() === OOTMSheetName);
 
   const bugs = Bugle.getBugReport(sheet);
   const aip = Bugle.getAIPReport();
