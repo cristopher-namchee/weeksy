@@ -41,6 +41,8 @@ function getCurrentWeekMonday(date) {
   const monday = new Date(date);
 
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  monday.setHours(0, 0, 0);
+  
   return monday;
 }
 
@@ -63,8 +65,6 @@ function getLatestReportLink(date) {
 }
 
 function getWeeklyEvents(date) {
-  const vacations = {};
-
   const events = [...Array(5).keys()].reduce((acc, curr) => {
     const targetDate = new Date(date);
     targetDate.setDate(targetDate.getDate() + curr);
@@ -92,13 +92,8 @@ function getWeeklyEvents(date) {
     }
   }
 
-  for (const [day, list] of Object.entries(events)) {
-    vacations[day] = list.filter(event => event.type === CalendarApp.EventType.OUT_OF_OFFICE);
-  }
-
   return {
     meetings: deduplicatedEvents,
-    vacations,
   }
 }
 
@@ -106,6 +101,10 @@ function eventTest() {
   const today = new Date();
 
   const monday = getCurrentWeekMonday(today);
+  const saturday = new Date(monday);
+  saturday.setDate(monday.getDate() + 5);
+
+  console.log(monday, saturday);
 
   console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 }
