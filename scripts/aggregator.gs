@@ -63,6 +63,8 @@ function getLatestReportLink(date) {
 }
 
 function getWeeklyEvents(date) {
+  const vacations = {};
+
   const events = [...Array(5).keys()].reduce((acc, curr) => {
     const targetDate = new Date(date);
     targetDate.setDate(targetDate.getDate() + curr);
@@ -70,8 +72,8 @@ function getWeeklyEvents(date) {
     const events = CalendarApp.getEventsForDay(targetDate);
 
     const filteredEvents = events
-      .filter(event => (event.type === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES))
-      .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle() }));
+      .filter(event => (event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES) || event.getEventType() === CalendarApp.EventType.OUT_OF_OFFICE)
+      .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle(), type: event.getEventType() }));
 
     acc[formatGithubDate(targetDate)] = filteredEvents;
 
@@ -82,17 +84,30 @@ function getWeeklyEvents(date) {
   const deduplicatedEvents = [];
 
   for (const eventOfDay of Object.values(events)) {
-    for (const { name } of eventOfDay) {
-      if (!table.has(name)) {
+    for (const { name, type } of eventOfDay) {
+      if (!table.has(name) && type === CalendarApp.EventType.DEFAULT && !IgnoredWeeklyEvents.includes(name)) {
         deduplicatedEvents.push(name);
         table.add(name);
       } 
     }
   }
 
-  console.log(JSON.stringify(events, null, 2));
+  for (const [day, list] of Object.entries(events)) {
+    vacations[day] = list.filter(event => event.type === CalendarApp.EventType.OUT_OF_OFFICE);
+  }
 
-  return deduplicatedEvents;
+  return {
+    meetings: deduplicatedEvents,
+    vacations,
+  }
+}
+
+function eventTest() {
+  const today = new Date();
+
+  const monday = getCurrentWeekMonday(today);
+
+  console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
 }
 
 function fetchGithubData(query) {
