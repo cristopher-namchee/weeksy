@@ -64,36 +64,23 @@ function getLatestReportLink(date) {
   throw new Error('Report file not found');
 }
 
-function getWeeklyEvents(date) {
-  const events = [...Array(5).keys()].reduce((acc, curr) => {
-    const targetDate = new Date(date);
-    targetDate.setDate(targetDate.getDate() + curr);
-
-    const events = CalendarApp.getEventsForDay(targetDate);
-
-    const filteredEvents = events
-      .filter(event => (event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES) || event.getEventType() === CalendarApp.EventType.OUT_OF_OFFICE)
-      .map(event => ({ time: [event.getStartTime(), event.getEndTime()], name: event.getTitle(), type: event.getEventType() }));
-
-    acc[formatGithubDate(targetDate)] = filteredEvents;
-
-    return acc;
-  }, {});
+function getWeeklyEvents(from, to) {
+  const weeklyEvents = CalendarApp.getEvents(from, to)
+    .filter(event => (event.getEventType() === CalendarApp.EventType.DEFAULT && event.getMyStatus() === CalendarApp.GuestStatus.YES)
+      || event.getEventType() === CalendarApp.EventType.OUT_OF_OFFICE);
 
   const table = new Set();
-  const deduplicatedEvents = [];
+  const meetings = [];
 
-  for (const eventOfDay of Object.values(events)) {
-    for (const { name, type } of eventOfDay) {
-      if (!table.has(name) && type === CalendarApp.EventType.DEFAULT && !IgnoredWeeklyEvents.includes(name)) {
-        deduplicatedEvents.push(name);
-        table.add(name);
-      } 
+  for (const event of weeklyEvents) {
+    if (!table.has(event.getTitle()) && event.getEventType() === CalendarApp.EventType.DEFAULT && !IgnoredWeeklyEvents.includes(event.getTitle())) {
+      table.add(event.getTitle());
+      meetings.push(event.getTitle());
     }
   }
 
   return {
-    meetings: deduplicatedEvents,
+    meetings,
   }
 }
 
@@ -104,9 +91,7 @@ function eventTest() {
   const saturday = new Date(monday);
   saturday.setDate(monday.getDate() + 5);
 
-  console.log(monday, saturday);
-
-  console.log(JSON.stringify(getWeeklyEvents(monday), null, 2));
+  console.log(JSON.stringify(getWeeklyEvents(monday, saturday), null, 2));
 }
 
 function fetchGithubData(query) {
