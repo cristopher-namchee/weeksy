@@ -28,6 +28,16 @@ const Repository = {
   'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
 };
 
+function validateInput() {
+  if (!GithubToken) {
+    throw new Error('GitHub token is required for listing accomplishments. Please ensure that GITHUB_TOKEN is filled in script properties.');
+  }
+
+  if (!ReportUsername) {
+    throw new Error('Report username is required for finding the weekly report document. Please ensure that REPORT_USERNAME is filled in script properties.')
+  }
+}
+
 function formatGithubDate(date) {
   const month = ('0' + (date.getMonth() + 1)).slice(-2);
   const actualDate = ('0' + date.getDate()).slice(-2);
@@ -63,7 +73,7 @@ function getLatestReportLink(date) {
     return files.next().getId();
   }
 
-  throw new Error('Report file not found');
+  throw new Error(`Report file with name ${documentName} cannot found. Please ensure that your REPORT_USERNAME is correct.`);
 }
 
 function getWeeklyEvents(from, to) {
@@ -463,6 +473,8 @@ function main() {
   const today = new Date();
 
   try {
+    validateInput();
+
     const monday = getCurrentWeekMonday(today);
     const saturday = new Date(monday);
     saturday.setDate(saturday.getDate() + 5);
@@ -537,7 +549,7 @@ function main() {
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>Failed to Execute</h2>
 
-          <p><b>Weeksy</b> encountered an error during execution:</p>
+          <p><b>Weeksy</b> encountered an error during execution for <a href="${document.getUrl()}">this document</a>:</p>
 
           <div style="background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 10px 15px; border-radius: 6px; margin: 10px 0;">
             <pre style="margin: 0; font-family: Consolas, monospace; white-space: pre-wrap;">${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}</pre>
