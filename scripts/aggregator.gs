@@ -5,7 +5,7 @@ const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPO
 
 const OOTMSheetName = 'REPORT';
 
-// fill this
+// Fill this yourself
 const IgnoredWeeklyEvents = ['Lunch'];
 
 const PlaceholderText = 'Note: Please refer to this guide on how to fill your weekly report';
@@ -17,8 +17,10 @@ const Heading = {
   Todo: 'Next Actions',
   Article: 'Technology, Business, Communication, Leadership, Management & Marketing',
   OMTM: 'Key Metrics / OMTM',
+  OutOfOffice: 'Out of Office',
 };
 
+// Also fill this yourself
 const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
   'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
@@ -33,8 +35,8 @@ function formatGithubDate(date) {
   return `${date.getFullYear()}-${month}-${actualDate}`;
 }
 
-function formatDate(date) {
-  return date.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+function formatDate(date, options = {}) {
+  return date.toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', ...options });
 }
 
 function getCurrentWeekMonday(date) {
@@ -42,7 +44,7 @@ function getCurrentWeekMonday(date) {
 
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
   monday.setHours(0, 0, 0);
-  
+
   return monday;
 }
 
@@ -72,26 +74,25 @@ function getWeeklyEvents(from, to) {
   const table = new Set();
   const meetings = [];
 
+  const oof = [];
+
   for (const event of weeklyEvents) {
-    if (!table.has(event.getTitle()) && event.getEventType() === CalendarApp.EventType.DEFAULT && !IgnoredWeeklyEvents.includes(event.getTitle())) {
-      table.add(event.getTitle());
-      meetings.push(event.getTitle());
+    switch (event.getEventType()) {
+      case CalendarApp.EventType.DEFAULT:
+        if (!table.has(event.getTitle()) && !IgnoredWeeklyEvents.includes(event.getTitle())) {
+          table.add(event.getTitle());
+          meetings.push(event.getTitle());
+        }
+        break;
+      case CalendarApp.EventType.OUT_OF_OFFICE: 
+        oof.push({ name: event.getTitle(), time: [event.getStartTime(), event.getEndTime()] });
     }
   }
 
   return {
     meetings,
+    oof,
   }
-}
-
-function eventTest() {
-  const today = new Date();
-
-  const monday = getCurrentWeekMonday(today);
-  const saturday = new Date(monday);
-  saturday.setDate(monday.getDate() + 5);
-
-  console.log(JSON.stringify(getWeeklyEvents(monday, saturday), null, 2));
 }
 
 function fetchGithubData(query) {
@@ -155,6 +156,10 @@ function cleanSection(section) {
 
   for (let idx = index + 1; idx < count; idx++) {
     const child = parent.getChild(idx);
+
+    if (child.getText() === '' || child.getText() === PlaceholderText) {
+      break;
+    }
 
     if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
       const heading = child.asParagraph().getHeading();
@@ -365,7 +370,7 @@ function fillAIPReport(aip, parent, index) {
   header.setBold(true);
 
   // this is fixed for now
-  const modelDesc = parent.insertParagraph(++index, `gpt-4.1 ${aip.users} concurrent users`);
+  const modelDesc = parent.insertParagraph(++index, `gpt-4.1 ${aip.users} Concurrent Users`);
   modelDesc.setHeading(DocumentApp.ParagraphHeading.HEADING5);
   modelDesc.setItalic(true);
 
@@ -397,6 +402,33 @@ function fillOMTM({ bugs, performance, aip }, section, date) {
   index = fillAIPReport(aip, parent, index);
 }
 
+function fillOutOfOffice(oof, section) {
+  const parent = section.getParent();
+  let index = parent.getChildIndex(section);
+
+  if (oof.length === 0) {
+    fillSectionWithNone(parent, index);
+
+    return;
+  }
+
+  const sharedFormattingOptions = {
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+    timeZone: 'Asia/Jakarta',
+  };
+
+  for (const event of oof) {
+    const text = `${formatDate(event.time[0], sharedFormattingOptions)} - ${formatDate(event.time[1], sharedFormattingOptions)}: ${event.name}`;
+    const item = parent.insertListItem(++index, text);
+    item.setGlyphType(DocumentApp.GlyphType.NUMBER);
+    item.setBold(false);
+    item.setFontFamily('Arial');
+  }
+}
+
 function findSection(search, document) {
   const body = document.getBody();
   const headingText = body.findText(search);
@@ -419,6 +451,7 @@ function findSection(search, document) {
 
 function cleanPlaceholderNoteText(body) {
   const lastChild = body.getChild(body.getNumChildren() - 1);
+  
   if (lastChild.asParagraph().getText() === PlaceholderText) {
     lastChild.clear();
   }
@@ -438,7 +471,7 @@ function main() {
 
     const document = DocumentApp.openById(id);
 
-    const events = getWeeklyEvents(monday);
+    const { meetings, oof } = getWeeklyEvents(monday, saturday);
     const issues = getWeeklyIssues(monday, saturday);
     const pullRequests = getWeeklyPullRequest(monday, saturday);
     const reviews = getWeeklyReviews(monday, saturday);
@@ -452,7 +485,7 @@ function main() {
     const meetingSection = findSection(Heading.Events, document);
     cleanSection(meetingSection);
 
-    fillWeeklyEvents(events, meetingSection, document);
+    fillWeeklyEvents(meetings, meetingSection, document);
 
     const accomplishmentSection = findSection(Heading.Task, document);
     cleanSection(accomplishmentSection);
@@ -470,6 +503,11 @@ function main() {
     cleanSection(omtmSection);
 
     fillOMTM(omtmData, omtmSection, today);
+
+    const oofSection = findSection(Heading.OutOfOffice, document);
+    cleanSection(oofSection);
+
+    fillOutOfOffice(oof, oofSection);
 
     cleanPlaceholderNoteText(document.getBody());
 
@@ -502,7 +540,7 @@ function main() {
           <p><b>Weeksy</b> encountered an error during execution:</p>
 
           <div style="background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 10px 15px; border-radius: 6px; margin: 10px 0;">
-            <pre style="margin: 0; font-family: Consolas, monospace; white-space: pre-wrap;">${err.message}</pre>
+            <pre style="margin: 0; font-family: Consolas, monospace; white-space: pre-wrap;">${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}</pre>
           </div>
 
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
