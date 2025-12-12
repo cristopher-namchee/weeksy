@@ -387,6 +387,10 @@ function fillAIPReport(aip, parent, index) {
   let counter = 1;
 
   for (const [scenario, target] of Object.entries(aip.scenario)) {
+    if (typeof target[0] !== 'number') {
+      continue;
+    }
+
     const paragraph = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
     paragraph.setBold(false);
     paragraph.setItalic(false);
@@ -549,7 +553,7 @@ function main() {
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>Failed to Execute</h2>
 
-          <p><b>Weeksy</b> encountered an error during execution for <a href="${document.getUrl()}">this document</a>:</p>
+          <p><b>Weeksy</b> encountered an error during execution:</p>
 
           <div style="background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 10px 15px; border-radius: 6px; margin: 10px 0;">
             <pre style="margin: 0; font-family: Consolas, monospace; white-space: pre-wrap;">${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}</pre>
