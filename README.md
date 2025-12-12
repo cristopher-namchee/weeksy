@@ -13,6 +13,7 @@ Apps Script that fills out your weekly report automatically.
 - Fills out your 'OMTM' section with actual GLAIR report
 - Fills out your 'Out of Office' with out-of-notice from your Google Calendar
 - Sends you an e-mail on success / error.
+- No copy-paste, this script writes it out to the document directly.
 
 > [!IMPORTANT]
 > This automation doesn't fill the following section:
@@ -32,16 +33,40 @@ This automation requires the following values to be defined the [script properti
 
 ## Installation
 
-- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/12) to jump-start your project.
+- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/13) to jump-start your project.
 - After filling the prerequistes, execute the script `main` function **once** by pressing the `Run` button. Accept all possible required permissions.
+- Deploy your script instance as a `Library` using the `Deploy` button.
 
 ## Triggers
 
-Generally, you don't want to run this script manually. Instead, you want to trigger it wth time-based trigger (e.g: On Saturday at 3 PM).:
+Generally, you don't want to run this script manually. Instead, you want to trigger it wth time-based trigger (e.g: On Saturday at 3 PM). Below is the example how you can set it:
 
 - In your Apps Script dashboard, navigate to the Trigger page
-- Add a new trigger, set it to [Time-Driven](https://medium.com/google-cloud/easily-managing-time-driven-triggers-using-google-apps-script-7fa48546b4e7), set it to any value you want
-- Deploy your script instance as a library using the `Deploy` button
+- Add a new trigger, set it to [Time-Driven](https://medium.com/google-cloud/easily-managing-time-driven-triggers-using-google-apps-script-7fa48546b4e7), set it to any value you want.
+
+## Customization
+
+### Labeling Repositories
+
+Due to limitations, users must label the repositories themselves in the `Repository` object.
+
+### Ignoring Calendar Events
+
+Some events (e.g: 'Lunch') can be ignored by filling the `IgnoredEvents` array with name of the event.
+
+## FAQ
+
+### Help my task isn't visible in the Accomplishment section!
+
+Ensure that the GitHub token you provide is able to access the company's repository. A common mistake here is creating the token under your ownership instead of `GDP-Admin`.
+
+### What if my Accomplishments aren't something that's logged in GitHub?
+
+Then, you need to fill the Accomplishment section yourself :)
+
+### Help my meeting isn't visible in Meeting section!
+
+Ensure that you've responded with `Yes` to the meeting.
 
 ## License
 
