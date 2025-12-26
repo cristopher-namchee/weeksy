@@ -33,7 +33,7 @@ This automation requires the following values to be defined the [script properti
 
 ## Installation
 
-- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/13) to jump-start your project.
+- [Click the following link](https://script.google.com/macros/library/d/1g_yKhlr3U1daL4nLT4FeB8pA-59dbaVNwaubOUNhyRU92JiW-CmYV0fo/15) to jump-start your project.
 - After filling the prerequistes, execute the script `main` function **once** by pressing the `Run` button. Accept all possible required permissions.
 - Deploy your script instance as a `Library` using the `Deploy` button.
 

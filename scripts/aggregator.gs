@@ -25,6 +25,7 @@ const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
   'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
   'https://api.github.com/repos/cristopher-namchee/deploynaut': 'Deploynaut',
+  'https://api.github.com/repos/cristopher-namchee/bugle': 'Bugle',
   'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
 };
 
@@ -94,7 +95,7 @@ function getWeeklyEvents(from, to) {
           meetings.push(event.getTitle());
         }
         break;
-      case CalendarApp.EventType.OUT_OF_OFFICE: 
+      case CalendarApp.EventType.OUT_OF_OFFICE:
         oof.push({ name: event.getTitle(), time: [event.getStartTime(), event.getEndTime()] });
     }
   }
@@ -316,17 +317,18 @@ function fillIssues(section) {
 }
 
 function getOMTMData() {
-  const ss = SpreadsheetApp.openById(bugsSheet);
-  const sheet = ss.getSheets().find(value => value.getName() === OOTMSheetName);
-
-  const bugs = Bugle.getBugReport(sheet);
+  const bugs = Bugle.getBugReport();
   const aip = Bugle.getAIPReport();
-  const performance = Bugle.getLLMPerformanceReport(sheet);
+  const performance = Bugle.getLLMPerformanceReport();
+
+  if (bugs.error || aip.error || performance.error) {
+    throw new Error(bugs.error || aip.error || performance.error);
+  }
 
   return {
-    bugs,
-    aip,
-    performance,
+    bugs: bugs.data,
+    aip: aip.data,
+    performance: performance.data,
   };
 }
 
@@ -465,7 +467,7 @@ function findSection(search, document) {
 
 function cleanPlaceholderNoteText(body) {
   const lastChild = body.getChild(body.getNumChildren() - 1);
-  
+
   if (lastChild.asParagraph().getText() === PlaceholderText) {
     lastChild.clear();
   }
@@ -534,7 +536,7 @@ function main() {
 
           <p>
             <b>Weeksy</b> has successfully filled your weekly report <a href="${document.getUrl()}">here</a>.
-          
+
             Please double-check the contents to ensure its validity.
           </p>
 
@@ -548,6 +550,7 @@ function main() {
 
     document.saveAndClose();
   } catch (err) {
+    console.error(err);
     GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
       htmlBody: `
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
