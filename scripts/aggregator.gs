@@ -320,10 +320,10 @@ function fillIssues(section) {
 function getBugReport() {
   try {
     const ss = SpreadsheetApp.openById(bugsSheet);
-    const sheet = ss.getSheets().find(val => val.getName() === targetSheet);
+    const sheet = ss.getSheets().find(val => val.getName() === OOTMSheetName);
 
     if (!sheet) {
-      throw new Error(`Sheet ${targetSheet} not found in the spreadsheet.`);
+      throw new Error(`Sheet "${OOTMSheetName}" not found in the spreadsheet.`);
     }
 
     const internalOpen = [
@@ -362,10 +362,10 @@ function getBugReport() {
 function getLLMPerformanceReport() {
   try {
     const ss = SpreadsheetApp.openById(bugsSheet);
-    const sheet = ss.getSheets().find(val => val.getName() === targetSheet);
+    const sheet = ss.getSheets().find(val => val.getName() === OOTMSheetName);
 
     if (!sheet) {
-      throw new Error(`Sheet ${targetSheet} not found in the spreadsheet.`);
+      throw new Error(`Sheet "${OOTMSheetName}" not found in the spreadsheet.`);
     }
 
     const data = [
@@ -400,12 +400,22 @@ function getAIPReport() {
     const users = Number(modelSheet.getRange(modelSheet.getLastRow(), 4).getValue());
 
     const scenario = {};
-    for (let idx = 1; idx < sheet.getLastRow(); idx += 10) {
+    for (let idx = 1; idx < sheet.getLastRow();) {
       const scenarioName = sheet.getRange(idx, 1).getValue().toString().split('\n')[1];
-      const ttft = sheet.getRange(idx + 7, 3).getValue();
-      const target = sheet.getRange(idx + 7, 4).getValue().match(/(\d+s)/)[1];
 
-      scenario[scenarioName] = [ttft, target];
+      let lastRow = idx + 7;
+      while (sheet.getRange(lastRow + 1, 1).getValue().toString().length > 0) {
+        lastRow++;
+      }
+
+      const ttft = sheet.getRange(lastRow, 3).getValue();
+      const ttftTarget = sheet.getRange(lastRow, 4).getValue().match(/(\d+s)/)[1];
+      const latency = sheet.getRange(lastRow, 5).getValue();
+      const latencyTarget = sheet.getRange(lastRow, 6).getValue().match(/(\d+s)/)[1];
+
+      scenario[scenarioName] = [ttft, ttftTarget, latency, latencyTarget];
+
+      idx = lastRow + 3;
     }
 
     const data = {
@@ -491,8 +501,7 @@ function fillAIPReport(aip, parent, index) {
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(true);
 
-  // this is fixed for now
-  const modelDesc = parent.insertParagraph(++index, `gpt-4.1 ${aip.users} Concurrent Users`);
+  const modelDesc = parent.insertParagraph(++index, `${aip.model} ${aip.users} Concurrent Users`);
   modelDesc.setHeading(DocumentApp.ParagraphHeading.HEADING5);
   modelDesc.setItalic(true);
 
@@ -503,12 +512,35 @@ function fillAIPReport(aip, parent, index) {
       continue;
     }
 
-    const paragraph = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
+    if (counter > 1) {
+      const spacer = parent.insertParagraph(++index, '');
+      spacer.setFontSize(4);
+    }
+
+    const paragraph = parent.insertParagraph(++index, `    Scenario ${counter++}: ${scenario}`);
+    paragraph.setFontSize(11);
     paragraph.setBold(false);
     paragraph.setItalic(false);
+    paragraph.setIndentStart(0);
+
+    const ttftItem = parent.insertListItem(++index, `TTFT ${target[0].toFixed(3)}s from target ${target[1]}`);
+    ttftItem.setFontSize(11);
+    ttftItem.setNestingLevel(1);
+    formatBoldPrefix(ttftItem, 'TTFT');
+
+    const latencyItem = parent.insertListItem(++index, `Latency ${target[2].toFixed(3)}s from target ${target[3]}`);
+    latencyItem.setFontSize(11);
+    latencyItem.setNestingLevel(1);
+    formatBoldPrefix(latencyItem, 'Latency');
   }
 
   return index;
+}
+
+function formatBoldPrefix(item, prefix) {
+  const text = item.editAsText();
+  text.setBold(false);
+  text.setBold(0, prefix.length - 1, true);
 }
 
 function fillOMTM({ bugs, performance, aip }, section, date) {
@@ -660,7 +692,6 @@ function main() {
 
     document.saveAndClose();
   } catch (err) {
-    console.error(err);
     GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
       htmlBody: `
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
