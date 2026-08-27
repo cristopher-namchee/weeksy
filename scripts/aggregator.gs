@@ -25,8 +25,8 @@ const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
   'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
   'https://api.github.com/repos/cristopher-namchee/deploynaut': 'Deploynaut',
-  'https://api.github.com/repos/cristopher-namchee/bugle': 'Bugle',
-  'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
+  'https://api.github.com/repos/GDP-ADMIN/glchat-custom-services': 'Bugle',
+  'https://api.github.com/repos/GDP-ADMIN/glchat-sdk-stl-config': 'GLChat SDK',
 };
 
 function validateInput() {
