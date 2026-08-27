@@ -1,4 +1,5 @@
 const bugsSheet = '1ZGlbEKvVqaP4BL2a81sKSHaBJw11cYxkyKQpCPdPV7A';
+const aipSheet = '1cs1OThqveeEb0cQPOcjsZGwewc6nuFargQ9DPL0UmqE';
 
 const GithubToken = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
 const ReportUsername = PropertiesService.getScriptProperties().getProperty('REPORT_USERNAME');
@@ -23,10 +24,10 @@ const Heading = {
 // Also fill this yourself
 const Repository = {
   'https://api.github.com/repos/GDP-ADMIN/glchat': 'GLChat',
-  'https://api.github.com/repos/GDP-ADMIN/glchat-sdk': 'GLChat SDK',
+  'https://api.github.com/repos/cristopher-namchee/reserenv': 'Reserenv',
   'https://api.github.com/repos/cristopher-namchee/deploynaut': 'Deploynaut',
-  'https://api.github.com/repos/cristopher-namchee/bugle': 'Bugle',
-  'https://github.com/stainless-sdks/glchat-sdk-typescript': 'GLChat SDK',
+  'https://api.github.com/repos/GDP-ADMIN/glchat-custom-services': 'Bugle',
+  'https://api.github.com/repos/GDP-ADMIN/glchat-sdk-stl-config': 'GLChat SDK',
 };
 
 function validateInput() {
@@ -316,10 +317,129 @@ function fillIssues(section) {
   fillSectionWithNone(parent, index);
 }
 
+function getBugReport() {
+  try {
+    const ss = SpreadsheetApp.openById(bugsSheet);
+    const sheet = ss.getSheets().find(val => val.getName() === OOTMSheetName);
+
+    if (!sheet) {
+      throw new Error(`Sheet "${OOTMSheetName}" not found in the spreadsheet.`);
+    }
+
+    const internalOpen = [
+      sheet.getRange(5, 2).getValue(), sheet.getRange(6, 2).getValue(), sheet.getRange(7, 2).getValue(),
+    ];
+    const externalOpen = [
+      sheet.getRange(5, 4).getValue(), sheet.getRange(6, 4).getValue(), sheet.getRange(7, 4).getValue(),
+    ];
+    const internalClosed = [
+      sheet.getRange(10, 2).getValue(), sheet.getRange(11, 2).getValue(), sheet.getRange(12, 2).getValue(), sheet.getRange(13, 2).getValue(),
+    ];
+    const externalClosed = [
+      sheet.getRange(10, 4).getValue(), sheet.getRange(11, 4).getValue(), sheet.getRange(12, 4).getValue(), sheet.getRange(13, 4).getValue(),
+    ];
+
+    for (const num of [...internalOpen, ...internalClosed, ...externalOpen, ...externalClosed]) {
+      if (Number.isNaN(num)) {
+        throw new Error(`Encountered invalid non-numeric data of ${num}`);
+      }
+    }
+
+    const data = { internal: { open: internalOpen, closed: internalClosed }, external: { open: externalOpen, closed: externalClosed } };
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+}
+
+function getLLMPerformanceReport() {
+  try {
+    const ss = SpreadsheetApp.openById(bugsSheet);
+    const sheet = ss.getSheets().find(val => val.getName() === OOTMSheetName);
+
+    if (!sheet) {
+      throw new Error(`Sheet "${OOTMSheetName}" not found in the spreadsheet.`);
+    }
+
+    const data = [
+      sheet.getRange(27, 11).getValue(),
+      sheet.getRange(28, 11).getValue(),
+      sheet.getRange(29, 11).getValue(),
+      sheet.getRange(30, 11).getValue(),
+    ];
+
+    return {
+      data,
+      error: null,
+    }
+  } catch (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+}
+
+function getAIPReport() {
+  try {
+    const ss = SpreadsheetApp.openById(aipSheet);
+    const sheets = ss.getSheets();
+
+    // get the second last sheet
+    const sheet = sheets[sheets.length - 2];
+
+    const modelSheet = sheets[sheets.length - 1];
+    const model = modelSheet.getRange(modelSheet.getLastRow(), 1).getValue();
+    const users = Number(modelSheet.getRange(modelSheet.getLastRow(), 4).getValue());
+
+    const scenario = {};
+    for (let idx = 1; idx < sheet.getLastRow();) {
+      const scenarioName = sheet.getRange(idx, 1).getValue().toString().split('\n')[1];
+
+      let lastRow = idx + 7;
+      while (sheet.getRange(lastRow + 1, 1).getValue().toString().length > 0) {
+        lastRow++;
+      }
+
+      const ttft = sheet.getRange(lastRow, 3).getValue();
+      const ttftTarget = sheet.getRange(lastRow, 4).getValue().match(/(\d+s)/)[1];
+      const latency = sheet.getRange(lastRow, 5).getValue();
+      const latencyTarget = sheet.getRange(lastRow, 6).getValue().match(/(\d+s)/)[1];
+
+      scenario[scenarioName] = [ttft, ttftTarget, latency, latencyTarget];
+
+      idx = lastRow + 3;
+    }
+
+    const data = {
+      model,
+      users,
+      scenario,
+    };
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error,
+    };
+  }
+}
+
 function getOMTMData() {
-  const bugs = Bugle.getBugReport();
-  const aip = Bugle.getAIPReport();
-  const performance = Bugle.getLLMPerformanceReport();
+  const bugs = getBugReport();
+  const aip = getAIPReport();
+  const performance = getLLMPerformanceReport();
 
   if (bugs.error || aip.error || performance.error) {
     throw new Error(bugs.error || aip.error || performance.error);
@@ -381,8 +501,7 @@ function fillAIPReport(aip, parent, index) {
   header.setHeading(DocumentApp.ParagraphHeading.HEADING4);
   header.setBold(true);
 
-  // this is fixed for now
-  const modelDesc = parent.insertParagraph(++index, `gpt-4.1 ${aip.users} Concurrent Users`);
+  const modelDesc = parent.insertParagraph(++index, `${aip.model} ${aip.users} Concurrent Users`);
   modelDesc.setHeading(DocumentApp.ParagraphHeading.HEADING5);
   modelDesc.setItalic(true);
 
@@ -393,12 +512,35 @@ function fillAIPReport(aip, parent, index) {
       continue;
     }
 
-    const paragraph = parent.insertParagraph(++index, `      Scenario ${counter++}: ${scenario} — ${target[0].toFixed(3)}s from target ${target[1]}`);
+    if (counter > 1) {
+      const spacer = parent.insertParagraph(++index, '');
+      spacer.setFontSize(4);
+    }
+
+    const paragraph = parent.insertParagraph(++index, `    Scenario ${counter++}: ${scenario}`);
+    paragraph.setFontSize(11);
     paragraph.setBold(false);
     paragraph.setItalic(false);
+    paragraph.setIndentStart(0);
+
+    const ttftItem = parent.insertListItem(++index, `TTFT ${target[0].toFixed(3)}s from target ${target[1]}`);
+    ttftItem.setFontSize(11);
+    ttftItem.setNestingLevel(1);
+    formatBoldPrefix(ttftItem, 'TTFT');
+
+    const latencyItem = parent.insertListItem(++index, `Latency ${target[2].toFixed(3)}s from target ${target[3]}`);
+    latencyItem.setFontSize(11);
+    latencyItem.setNestingLevel(1);
+    formatBoldPrefix(latencyItem, 'Latency');
   }
 
   return index;
+}
+
+function formatBoldPrefix(item, prefix) {
+  const text = item.editAsText();
+  text.setBold(false);
+  text.setBold(0, prefix.length - 1, true);
 }
 
 function fillOMTM({ bugs, performance, aip }, section, date) {
@@ -550,7 +692,6 @@ function main() {
 
     document.saveAndClose();
   } catch (err) {
-    console.error(err);
     GmailApp.sendEmail(self, '⚠️ [Weeksy] Execution Failed', '', {
       htmlBody: `
         <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
